@@ -1,12 +1,32 @@
 package com.swingy.model;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 public class Hero {
+
+    @NotBlank(message = "Name may not be blank")
+    @Size(min = 2, max = 30, message = "Name must be between 2 and 30 characters")
     private String name;
+
+    @NotNull(message = "Hero class must be selected")
     private HeroClass heroClass;
+
+    @Min(value = 1, message = "Level must be at least 1")
     private int level;
+
+    @Min(value = 0, message = "XP cannot be negative")
     private int xp;
+
+    @Min(value = 0, message = "Attack cannot be negative")
     private int attack;
+
+    @Min(value = 0, message = "Defense cannot be negative")
     private int defense;
+
+    @Min(value = 1, message = "Hit points must be at least 1")
     private int hitPoints;
 
     public Hero(String name, HeroClass heroClass) {
