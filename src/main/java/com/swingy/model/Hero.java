@@ -9,6 +9,16 @@ public class Hero {
     private int defense;
     private int hitPoints;
 
+    public Hero(String name, HeroClass heroClass) {
+        this.name = name;
+        this.heroClass = heroClass;
+        this.level = 1;
+        this.xp = 0;
+        this.attack = heroClass.getBaseAttack();
+        this.defense = heroClass.getBaseDefense();
+        this.hitPoints = heroClass.getBaseHitPoints();
+    }
+
     public String getName() {
         return name;
     }
