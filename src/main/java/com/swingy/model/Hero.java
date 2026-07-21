@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.EnumMap;
+import java.util.Map;
 
 public class Hero {
 
@@ -28,6 +30,8 @@ public class Hero {
 
     @Min(value = 1, message = "Hit points must be at least 1")
     private int hitPoints;
+
+    private final Map<ArtifactType, Artifact> equipped = new EnumMap<>(ArtifactType.class);
 
     public Hero(String name, HeroClass heroClass) {
         this.name = name;
@@ -105,5 +109,15 @@ public class Hero {
             levelUp();
         }
     }
-    
+
+    public void equipArtifact(Artifact artifact) {
+        Artifact current = equipped.get(artifact.getType());
+        if (current != null) current.removeFrom(this);
+        artifact.applyTo(this);
+        equipped.put(artifact.getType(), artifact);
+    }
+
+    public Artifact getEquipped(ArtifactType type) { return equipped.get(type); }
+
+    public HeroClass getHeroClass() { return heroClass; }
 }

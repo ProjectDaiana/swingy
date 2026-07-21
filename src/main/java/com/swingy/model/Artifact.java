@@ -1,14 +1,19 @@
 package com.swingy.model;
 
-public class Artifact {
-    private ArtifactType type; // enum: WEAPON, ARMOR, HELM
-    private int value;
+import jakarta.validation.constraints.Min;
 
-    public Artifact(ArtifactType type, int value) {
-        this.type = type;
+public abstract class Artifact {
+
+    @Min(1)
+    protected final int value;
+
+    public Artifact(int value) {
         this.value = value;
     }
 
-    public ArtifactType getType() { return type; }
     public int getValue() { return value; }
+
+    public abstract ArtifactType getType();
+    public abstract void applyTo(Hero hero);
+    public abstract void removeFrom(Hero hero);
 }
