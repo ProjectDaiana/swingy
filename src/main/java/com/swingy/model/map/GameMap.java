@@ -1,8 +1,10 @@
-package com.swingy.model;
+package com.swingy.model.map;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
+import com.swingy.model.villain.Villian;
 
 public class GameMap {
 

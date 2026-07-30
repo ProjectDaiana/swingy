@@ -1,4 +1,4 @@
-package com.swingy.model;
+package com.swingy.model.hero;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.EnumMap;
 import java.util.Map;
+
+import com.swingy.model.artifact.Artifact;
+import com.swingy.model.artifact.ArtifactType;
 
 public class Hero {
 
@@ -41,6 +44,16 @@ public class Hero {
         this.attack = heroClass.getBaseAttack();
         this.defense = heroClass.getBaseDefense();
         this.hitPoints = heroClass.getBaseHitPoints();
+    }
+
+    public Hero(String name, HeroClass heroClass, int level, int xp, int attack, int defense, int hitPoints) {
+        this.name = name;
+        this.heroClass = heroClass;
+        this.level = level;
+        this.xp = xp;
+        this.attack = attack;
+        this.defense = defense;
+        this.hitPoints = hitPoints;
     }
 
     public String getName() {
@@ -95,14 +108,14 @@ public class Hero {
         return level * 1000 + (level - 1) * (level - 1) * 450;
     }
 
-    void levelUp() {
+    public void levelUp() {
         level++;
         attack    += heroClass.getAttackGrowth();
         defense   += heroClass.getDefenseGrowth();
         hitPoints += heroClass.getHitPointsGrowth();
     }
 
-    void gainExperience(int amount) {
+    public void gainExperience(int amount) {
         xp += amount;
         while (xp >= xpToNextLevel()) {
             xp -= xpToNextLevel();
@@ -114,6 +127,10 @@ public class Hero {
         Artifact current = equipped.get(artifact.getType());
         if (current != null) current.removeFrom(this);
         artifact.applyTo(this);
+        equipped.put(artifact.getType(), artifact);
+    }
+
+    public void loadArtifact(Artifact artifact) {
         equipped.put(artifact.getType(), artifact);
     }
 

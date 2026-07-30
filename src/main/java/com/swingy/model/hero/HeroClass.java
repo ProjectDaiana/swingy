@@ -1,4 +1,4 @@
-package com.swingy.model;
+package com.swingy.model.hero;
 
 public enum HeroClass {
     WARRIOR(10, 5, 50, 3, 2, 15),

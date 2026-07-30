@@ -1,4 +1,6 @@
-package com.swingy.model;
+package com.swingy.model.artifact;
+
+import com.swingy.model.hero.Hero;
 
 public class Weapon extends Artifact {
 

@@ -1,4 +1,4 @@
-package com.swingy.model;
+package com.swingy.model.artifact;
 
 public enum ArtifactType {
     WEAPON,

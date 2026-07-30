@@ -1,4 +1,4 @@
-package com.swingy.model;
+package com.swingy.model.villain;
 
 public class Villian {
     private int level;
