@@ -2,9 +2,10 @@ package com.swingy.repository;
 
 import com.swingy.model.hero.Hero;
 import java.util.List;
+import java.nio.file.Path;
 
 public interface HeroRepository {
     public void saveHero(Hero hero);
 
-    public List<Hero> loadHeros();
+    public List<Hero> loadHeroes(Path path);
 }

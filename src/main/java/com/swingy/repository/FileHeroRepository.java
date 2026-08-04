@@ -16,15 +16,13 @@ public class FileHeroRepository implements HeroRepository {
 
     }
 
-    public List<Hero> loadHeros(Path path) {
+    public List<Hero> loadHeroes(Path path) {
         List<Hero> heroes = new ArrayList<>();
         if (!Files.exists(path)) {
             return heroes; // no file yet, nothing to load
         }
         try {
             List<String> lines = Files.readAllLines(path);
-            if (lines == null)
-                throw new Exception("File is empty.");
             for (String line : lines) {
                 String[] pairs = line.split(";");
                 Map<String, String> data = new HashMap<>();
