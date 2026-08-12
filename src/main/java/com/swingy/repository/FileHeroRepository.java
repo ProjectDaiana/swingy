@@ -13,8 +13,25 @@ import com.swingy.model.hero.Hero;
 import com.swingy.model.hero.HeroClass;
 
 public class FileHeroRepository implements HeroRepository {
-    public void saveHero(Hero hero) {
-
+    public void saveHeroes(List<Hero> heroes, Path path) {
+        StringBuilder toWrite = new StringBuilder(); // not thread safe, use StringBuffer if needed
+        for (Hero hero : heroes) {
+            String line = String.format(
+                    "name=%s;class=%s;level=%d;xp=%d;attack=%d;defense=%d;hitPoints=%d",
+                    hero.getName(),
+                    hero.getHeroClass().name(),
+                    hero.getLevel(),
+                    hero.getXp(),
+                    hero.getAttack(),
+                    hero.getDefense(),
+                    hero.getHitPoints());
+            toWrite.append(line).append(System.lineSeparator());
+        }
+        try {
+            Files.writeString(path, toWrite);
+        } catch (IOException e) {
+            System.out.println("Could not save hero: " + e.getMessage());
+        }
     }
 
     public List<Hero> loadHeroes(Path path) {
