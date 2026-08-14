@@ -64,14 +64,14 @@ public class Hero {
         return level;
     }
 
-    public int getExperience(){
+    public int getXp() {
         return xp;
     }
 
     public int getAttack() {
         return attack;
     }
-    
+
     public int getDefense() {
         return defense;
     }
@@ -83,14 +83,6 @@ public class Hero {
     public void setName(String name) {
         this.name = name;
     }
-
-    // public void setLevel(int level) {
-    //     this.level = level;
-    // }
-
-    // public void setExperience(int experience) {
-    //     this.experience = experience;
-    // }
 
     public void setAttack(int attack) {
         this.attack = attack;
@@ -110,12 +102,12 @@ public class Hero {
 
     public void levelUp() {
         level++;
-        attack    += heroClass.getAttackGrowth();
-        defense   += heroClass.getDefenseGrowth();
+        attack += heroClass.getAttackGrowth();
+        defense += heroClass.getDefenseGrowth();
         hitPoints += heroClass.getHitPointsGrowth();
     }
 
-    public void gainExperience(int amount) {
+    public void gainXp(int amount) {
         xp += amount;
         while (xp >= xpToNextLevel()) {
             xp -= xpToNextLevel();
@@ -125,7 +117,8 @@ public class Hero {
 
     public void equipArtifact(Artifact artifact) {
         Artifact current = equipped.get(artifact.getType());
-        if (current != null) current.removeFrom(this);
+        if (current != null)
+            current.removeFrom(this);
         artifact.applyTo(this);
         equipped.put(artifact.getType(), artifact);
     }
@@ -134,7 +127,19 @@ public class Hero {
         equipped.put(artifact.getType(), artifact);
     }
 
-    public Artifact getEquipped(ArtifactType type) { return equipped.get(type); }
+    public Artifact getEquipped(ArtifactType type) {
+        return equipped.get(type);
+    }
 
-    public HeroClass getHeroClass() { return heroClass; }
+    public void takeDamage(int damage) {
+        int effectiveDamage = Math.max(0, damage - defense);
+        hitPoints -= effectiveDamage;
+        if (hitPoints < 0) {
+            hitPoints = 0;
+        }
+    }   
+
+    public HeroClass getHeroClass() {
+        return heroClass;
+    }
 }
