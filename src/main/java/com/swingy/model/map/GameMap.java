@@ -8,7 +8,9 @@ import com.swingy.model.villain.Villian;
 
 public class GameMap {
 
-    public enum Direction { NORTH, EAST, SOUTH, WEST }
+    public enum Direction {
+        NORTH, EAST, SOUTH, WEST
+    }
 
     private final int size;
     private int heroX;
@@ -26,15 +28,15 @@ public class GameMap {
         Random randomizer = new Random();
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
-                if (x == heroX && y == heroY) continue;
+                if (x == heroX && y == heroY)
+                    continue;
                 if (randomizer.nextInt(3) == 0) { // ~33% chance per cell
                     int vLevel = Math.max(1, heroLevel + randomizer.nextInt(3) - 1);
                     Villian v = new Villian(
-                        vLevel,
-                        5 + vLevel * 2,
-                        3 + vLevel,
-                        20 + vLevel * 5
-                    );
+                            vLevel,
+                            5 + vLevel * 2,
+                            3 + vLevel,
+                            20 + vLevel * 5);
                     villains.put(key(x, y), v);
                 }
             }
@@ -45,8 +47,8 @@ public class GameMap {
         switch (dir) {
             case NORTH -> heroY--;
             case SOUTH -> heroY++;
-            case WEST  -> heroX--;
-            case EAST  -> heroX++;
+            case WEST -> heroX--;
+            case EAST -> heroX++;
         }
     }
 
@@ -62,11 +64,23 @@ public class GameMap {
         villains.remove(key(x, y));
     }
 
-    public int getSize()  { return size; }
-    public int getHeroX() { return heroX; }
-    public int getHeroY() { return heroY; }
+    public int getSize() {
+        return size;
+    }
 
-    public boolean hasVillain(int x,int y) { return getVillainAt(x, y) != null; }
+    public int getHeroX() {
+        return heroX;
+    }
 
-    private static String key(int x, int y) { return x + "," + y; }
+    public int getHeroY() {
+        return heroY;
+    }
+
+    public boolean hasVillain(int x, int y) {
+        return getVillainAt(x, y) != null;
+    }
+
+    private static String key(int x, int y) {
+        return x + "," + y;
+    }
 }
