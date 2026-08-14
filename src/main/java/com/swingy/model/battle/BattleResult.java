@@ -1,6 +1,8 @@
 package com.swingy.model.battle;
 import com.swingy.model.artifact.Artifact;
 
+
+//DTO class to encapsulate the result of a battle
 public class BattleResult {
     public enum Result {
       WIN,

@@ -9,6 +9,7 @@ import com.swingy.model.artifact.Weapon;
 import com.swingy.model.hero.Hero;
 import com.swingy.model.villain.Villian;
 
+// utility class for handling battles between heroes and villains
 public class Battle {
     private Battle() {
     };
@@ -33,13 +34,13 @@ public class Battle {
         return new BattleResult(artifact, result, damage);
     }
 
-    public static BattleResult tryToRun() {
+    public static boolean tryToRun() {
         Random random = new Random();
         if (random.nextInt(2) == 0) {
             // also needs to retunr to previous position in the controller
-            return new BattleResult(null, BattleResult.Result.FLEES, 0);
+            return true;
         }
-        return new BattleResult(null, BattleResult.Result.LOSES, 0);
+        return false;
     }
 
 }
