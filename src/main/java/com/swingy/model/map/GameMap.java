@@ -52,6 +52,11 @@ public class GameMap {
         }
     }
 
+    public void moveHeroTo(int prevX, int prevY) {
+        this.heroX = prevX;
+        this.heroY = prevY;
+    }
+
     public boolean isAtBorder() {
         return heroX == 0 || heroY == 0 || heroX == size - 1 || heroY == size - 1;
     }
