@@ -42,6 +42,7 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <version>3.6.0</version>
         <configuration>
+          <outputDirectory>${project.basedir}</outputDirectory>
           <archive>
             <manifest>
               <mainClass>com.swingy.Main</mainClass>
