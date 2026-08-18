@@ -96,6 +96,10 @@ public class Hero {
         this.hitPoints = hitPoints;
     }
 
+    public void dies() {
+        this.hitPoints = 0;
+    }
+
     int xpToNextLevel() {
         return level * 1000 + (level - 1) * (level - 1) * 450;
     }
@@ -137,7 +141,7 @@ public class Hero {
         if (hitPoints < 0) {
             hitPoints = 0;
         }
-    }   
+    }
 
     public HeroClass getHeroClass() {
         return heroClass;
