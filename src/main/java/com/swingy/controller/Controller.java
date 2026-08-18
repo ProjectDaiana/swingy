@@ -75,11 +75,6 @@ public class Controller {
                 handleBattle(hero, map);
             }
 
-            // Check for artifact
-            Artifact artifact = map.getArtifactAt(map.getHeroX(), map.getHeroY());
-            if (artifact != null) {
-                handleArtifactPickup(hero, artifact);
-            }
             view.drawMap(map, hero);
         }
     }
@@ -107,7 +102,6 @@ public class Controller {
             view.showMessage("Too slow. Now you MUST fight!");
             resolveBattle(hero);
         }
-        view.drawMap(map, hero);
 
     }
 
