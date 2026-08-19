@@ -35,7 +35,11 @@ public class ConsoleView implements GameView {
 
     public boolean askNewHero() {
         System.out.println("Do you want to create a new hero or load an existing one? (1: Create, 2: Load)");
-        String input = scanner.nextLine().toLowerCase();
+        String input = scanner.nextLine();
+        if (!input.matches("^[12]$")) {
+            System.out.println("Choose 1 or 2 only.");
+            return askNewHero();
+        }
         return "1".equals(input);
     }
 
@@ -46,7 +50,12 @@ public class ConsoleView implements GameView {
 
     public HeroClass askHeroClass() {
         System.out.println("Select hero class (1: Warrior, 2: Mage, 3: Archer): ");
-        int choice = Integer.parseInt(scanner.nextLine());
+        String input = scanner.nextLine();
+        if (!input.matches("\\d+")) {
+            System.out.println("Only digits are allowed.");
+            return askHeroClass(); // or retry
+        }
+        int choice = Integer.parseInt(input);
         switch (choice) {
             case 1:
                 return HeroClass.WARRIOR;
