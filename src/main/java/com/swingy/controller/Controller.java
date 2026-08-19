@@ -90,7 +90,6 @@ public class Controller {
 
         if (fight) {
             resolveBattle(hero);
-            view.drawMap(map, hero);
             return;
         }
 
@@ -120,9 +119,12 @@ public class Controller {
     private void applyBattleResult(Hero hero, BattleResult battleResult) {
         switch (battleResult.getResult()) {
             case WIN -> {
+                view.showMessage("You won the battle and gained experience!");
                 hero.gainXp(battleResult.getXPGained());
                 Artifact artifact = battleResult.getArtifact();
                 if (artifact != null) {
+                    view.showMessage("The villain dropped an artifact: " + artifact.getType().toString()
+                            + " with value: " + artifact.getValue());
                     handleArtifactPickup(hero, artifact);
                 }
             }
