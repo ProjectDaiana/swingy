@@ -8,6 +8,7 @@ import com.swingy.model.hero.Hero;
 import com.swingy.view.console.ConsoleView;
 import com.swingy.controller.Controller;
 import com.swingy.repository.FileHeroRepository;
+import com.swingy.view.gui.GUIView;
 
 public class Main {
 
@@ -35,13 +36,12 @@ public class Main {
                   System.out.println("Starting in console mode...");
                   view = new ConsoleView(); // or new GuiView() for GUI
 
-                  // } else {
-                  // System.out.println("Starting in GUI mode...");
-                  // view = new GuiView(); // Implement this class for GUI
-                  // }
-                  controller = new Controller(view, repository);
-                  controller.startGame(); // Start a new game);
+            } else {
+                  System.out.println("Starting in GUI mode...");
+                  view = new GUIView(); // Implement this class for GUI
             }
-            // scanner.close();/// where to close?
+            controller = new Controller(view, repository);
+            controller.startGame(); // Start a new game);
       }
+      // scanner.close();/// where to close?
 }
