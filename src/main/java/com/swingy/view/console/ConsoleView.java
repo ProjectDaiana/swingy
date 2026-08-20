@@ -1,7 +1,7 @@
 package com.swingy.view.console;
 
 import com.swingy.model.hero.Hero;
-import com.swingy.model.hero.HeroClass;
+import com.swingy.model.hero.HeroType;
 import com.swingy.view.GameView;
 import com.swingy.model.DirectionType;
 import com.swingy.model.battle.BattleResult;
@@ -21,7 +21,7 @@ public class ConsoleView implements GameView {
     public void showHeroDetails(Hero hero) {
         System.out.println("Hero Details:");
         System.out.println("Name: " + hero.getName());
-        System.out.println("Class: " + hero.getHeroClass().toString());
+        System.out.println("Class: " + hero.getHeroType().toString());
         System.out.println("Level: " + hero.getLevel());
         System.out.println("XP: " + hero.getXp());
         System.out.println("Attack: " + hero.getAttack());
@@ -48,24 +48,24 @@ public class ConsoleView implements GameView {
         return scanner.nextLine();
     }
 
-    public HeroClass askHeroClass() {
+    public HeroType askHeroType() {
         System.out.println("Select hero class (1: Warrior, 2: Mage, 3: Archer): ");
         String input = scanner.nextLine();
         if (!input.matches("\\d+")) {
             System.out.println("Only digits are allowed.");
-            return askHeroClass(); // or retry
+            return askHeroType(); // or retry
         }
         int choice = Integer.parseInt(input);
         switch (choice) {
             case 1:
-                return HeroClass.WARRIOR;
+                return HeroType.WARRIOR;
             case 2:
-                return HeroClass.WIZARD;
+                return HeroType.WIZARD;
             case 3:
-                return HeroClass.MESSI;
+                return HeroType.MESSI;
             default:
                 System.out.println("Invalid choice. Defaulting to Warrior.");
-                return HeroClass.WARRIOR;
+                return HeroType.WARRIOR;
         }
     }
 

@@ -17,7 +17,7 @@ public class Hero {
     private String name;
 
     @NotNull(message = "Hero class must be selected")
-    private HeroClass heroClass;
+    private HeroType HeroType;
 
     @Min(value = 1, message = "Level must be at least 1")
     private int level;
@@ -36,19 +36,19 @@ public class Hero {
 
     private final Map<ArtifactType, Artifact> equipped = new EnumMap<>(ArtifactType.class);
 
-    public Hero(String name, HeroClass heroClass) {
+    public Hero(String name, HeroType HeroType) {
         this.name = name;
-        this.heroClass = heroClass;
+        this.HeroType = HeroType;
         this.level = 1;
         this.xp = 0;
-        this.attack = heroClass.getBaseAttack();
-        this.defense = heroClass.getBaseDefense();
-        this.hitPoints = heroClass.getBaseHitPoints();
+        this.attack = HeroType.getBaseAttack();
+        this.defense = HeroType.getBaseDefense();
+        this.hitPoints = HeroType.getBaseHitPoints();
     }
 
-    public Hero(String name, HeroClass heroClass, int level, int xp, int attack, int defense, int hitPoints) {
+    public Hero(String name, HeroType HeroType, int level, int xp, int attack, int defense, int hitPoints) {
         this.name = name;
-        this.heroClass = heroClass;
+        this.HeroType = HeroType;
         this.level = level;
         this.xp = xp;
         this.attack = attack;
@@ -106,9 +106,9 @@ public class Hero {
 
     public void levelUp() {
         level++;
-        attack += heroClass.getAttackGrowth();
-        defense += heroClass.getDefenseGrowth();
-        hitPoints += heroClass.getHitPointsGrowth();
+        attack += HeroType.getAttackGrowth();
+        defense += HeroType.getDefenseGrowth();
+        hitPoints += HeroType.getHitPointsGrowth();
     }
 
     public void gainXp(int amount) {
@@ -143,7 +143,7 @@ public class Hero {
         }
     }
 
-    public HeroClass getHeroClass() {
-        return heroClass;
+    public HeroType getHeroType() {
+        return HeroType;
     }
 }

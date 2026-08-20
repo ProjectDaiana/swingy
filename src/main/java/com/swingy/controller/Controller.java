@@ -1,7 +1,7 @@
 package com.swingy.controller;
 
 import com.swingy.model.hero.Hero;
-import com.swingy.model.hero.HeroClass;
+import com.swingy.model.hero.HeroType;
 import com.swingy.repository.HeroRepository;
 import com.swingy.model.villain.Villian;
 import com.swingy.view.GameView;
@@ -34,8 +34,8 @@ public class Controller {
         Hero hero = null;
         if (isNewHero) {
             name = view.askHeroName();
-            HeroClass heroClass = view.askHeroClass();
-            hero = new Hero(name, heroClass);
+            HeroType HeroType = view.askHeroType();
+            hero = new Hero(name, HeroType);
         } else {
             heroes = repository.loadHeroes(path);
             Hero selectedHero = view.askSelectHero(heroes);
