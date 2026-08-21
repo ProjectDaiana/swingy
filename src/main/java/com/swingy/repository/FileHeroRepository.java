@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.swingy.model.hero.Hero;
+import com.swingy.model.hero.HeroBuilder;
 import com.swingy.model.hero.HeroType;
 
 public class FileHeroRepository implements HeroRepository {
@@ -75,7 +76,13 @@ public class FileHeroRepository implements HeroRepository {
             int defense = Integer.parseInt(data.get("defense"));
             int hitPoints = Integer.parseInt(data.get("hitPoints"));
 
-            Hero hero = new Hero(name, archetype, level, xp, attack, defense, hitPoints);
+            Hero hero = new HeroBuilder(name, archetype)
+                .level(level)
+                .xp(xp)
+                .attack(attack)
+                .defense(defense)
+                .hitPoints(hitPoints)
+                .build();
             return Optional.of(hero);
         } catch (Exception e) {
             System.out.println("Skipping corrupted hero line: " + e.getMessage());

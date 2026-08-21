@@ -36,7 +36,7 @@ public class Hero {
 
     private final Map<ArtifactType, Artifact> equipped = new EnumMap<>(ArtifactType.class);
 
-    public Hero(String name, HeroType HeroType) {
+    Hero(String name, HeroType HeroType) {
         this.name = name;
         this.HeroType = HeroType;
         this.level = 1;
@@ -46,7 +46,7 @@ public class Hero {
         this.hitPoints = HeroType.getBaseHitPoints();
     }
 
-    public Hero(String name, HeroType HeroType, int level, int xp, int attack, int defense, int hitPoints) {
+    Hero(String name, HeroType HeroType, int level, int xp, int attack, int defense, int hitPoints) {
         this.name = name;
         this.HeroType = HeroType;
         this.level = level;
