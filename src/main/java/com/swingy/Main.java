@@ -15,7 +15,6 @@ public class Main {
       public static void main(String[] args) {
             GameView view;
             HeroRepository repository = new FileHeroRepository();
-            Controller controller;
 
             if (args.length < 1) {
                   System.out.println("Please specify the view type: console or gui");
@@ -40,8 +39,8 @@ public class Main {
                   System.out.println("Starting in GUI mode...");
                   view = new GUIView(); // Implement this class for GUI
             }
-            controller = new Controller(view, repository);
-            controller.startGame(); // Start a new game);
+            Controller controller = new Controller(view, repository); // test hero and map
+            controller.startGameLoop(); // Start a new game);
       }
       // scanner.close();/// where to close?
 }

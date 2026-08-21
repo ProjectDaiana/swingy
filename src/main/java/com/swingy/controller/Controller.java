@@ -29,7 +29,7 @@ public class Controller {
         this.repository = repository;
     }
 
-    public void startGame() {
+    public Hero setupHero() {
         boolean isNewHero = view.askNewHero();
         String name = null;
         Hero hero = null;
@@ -42,14 +42,15 @@ public class Controller {
             Hero selectedHero = view.askSelectHero(heroes);
             hero = selectedHero;
         }
-
-        GameMap map = new GameMap(hero.getLevel()); // Example size, adjust as needed
-                                                    // value
-
         view.showHeroDetails(hero);
+        return hero;
+    }
+
+    public void startGameLoop() {
+        Hero hero = setupHero();
+        GameMap map = new GameMap(hero.getLevel()); // Example size, adjust as needed
 
         view.drawMap(map, hero);
-
         while (true) {
             if (hero.isDefeated()) {
                 endGame(GameResult.DEFEAT);
