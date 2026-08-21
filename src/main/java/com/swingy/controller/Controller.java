@@ -9,6 +9,7 @@ import com.swingy.model.artifact.Artifact;
 import com.swingy.model.battle.Battle;
 import com.swingy.model.battle.BattleResult;
 import com.swingy.model.map.GameMap;
+import com.swingy.model.GameResult;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -34,8 +35,8 @@ public class Controller {
         Hero hero = null;
         if (isNewHero) {
             name = view.askHeroName();
-            HeroType HeroType = view.askHeroType();
-            hero = new Hero(name, HeroType);
+            HeroType archetype = view.askHeroType();
+            hero = new Hero(name, archetype);
         } else {
             heroes = repository.loadHeroes(path);
             Hero selectedHero = view.askSelectHero(heroes);
@@ -50,12 +51,12 @@ public class Controller {
         view.drawMap(map, hero);
 
         while (true) {
-            if (hero.getHitPoints() <= 0) {
-                view.showGameOver("You have been defeated!");
+            if (hero.isDefeated()) {
+                endGame(GameResult.DEFEAT);
                 break;
             }
             if (map.isAtBorder()) { // Example victory condition
-                view.showVictory("Congratulations! You have won the game!");
+                endGame(GameResult.VICTORY);
                 break;
             }
 
@@ -79,17 +80,19 @@ public class Controller {
         }
     }
 
-    public void endGame() {
+    public void endGame(GameResult result) {
         repository.saveHeroes(heroes, path);
-        view.showGameOver("Game Over!");
-
+        switch (result) {
+            case VICTORY -> view.showVictory("Congratulations! You have won the game!");
+            case DEFEAT -> view.showGameOver("Game Over! Your hero has been defeated.");
+        }
     }
 
     public void handleBattle(Hero hero, GameMap map) {
         boolean fight = view.askFight();
 
         if (fight) {
-            resolveBattle(hero);
+            resolveBattle(hero, map);
             return;
         }
 
@@ -99,7 +102,7 @@ public class Controller {
             map.moveHeroTo(prevHeroX, prevHeroY);
         } else {
             view.showMessage("Too slow. Now you MUST fight!");
-            resolveBattle(hero);
+            resolveBattle(hero, map);
         }
 
     }
@@ -119,7 +122,7 @@ public class Controller {
     private void applyBattleResult(Hero hero, BattleResult battleResult) {
         switch (battleResult.getResult()) {
             case WIN -> {
-                view.showMessage("You won the battle and gained experience!");
+                view.showMessage("You won the battle! You gained " + battleResult.getXPGained() + " XP.");
                 hero.gainXp(battleResult.getXPGained());
                 Artifact artifact = battleResult.getArtifact();
                 if (artifact != null) {
@@ -129,14 +132,17 @@ public class Controller {
                 }
             }
             case LOSES -> {
-                view.showMessage("You lost the battle and took damage.");
+                view.showMessage("You lost the battle! Your hero has been defeated.");
                 hero.dies();
             }
         }
     }
 
-    private void resolveBattle(Hero hero) {
+    private void resolveBattle(Hero hero, GameMap map) {
         BattleResult battleResult = Battle.fight(hero, villian);
+        if (battleResult.getResult() == BattleResult.Result.WIN) {
+            map.removeVillainAt(map.getHeroX(), map.getHeroY());
+        }
         view.showBattleResult(battleResult);
         applyBattleResult(hero, battleResult);
     }

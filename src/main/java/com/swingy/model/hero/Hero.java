@@ -100,6 +100,10 @@ public class Hero {
         this.hitPoints = 0;
     }
 
+    public boolean isDefeated() {
+        return this.hitPoints <= 0;
+    }
+
     int xpToNextLevel() {
         return level * 1000 + (level - 1) * (level - 1) * 450;
     }
