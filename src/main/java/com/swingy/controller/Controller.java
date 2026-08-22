@@ -49,10 +49,14 @@ public class Controller {
 
     public void startGameLoop() {
         Hero hero = setupHero();
-        GameMap map = new GameMap(hero.getLevel()); // Example size, adjust as needed
 
+        // Setup the game map and draw it
+        GameMap map = new GameMap(hero.getLevel()); // Example size, adjust as needed
         view.drawMap(map, hero);
+
+        // Main game loop
         while (true) {
+            // Check for game over conditions
             if (hero.isDefeated()) {
                 endGame(GameResult.DEFEAT);
                 break;
