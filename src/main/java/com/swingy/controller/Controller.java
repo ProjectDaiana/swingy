@@ -19,7 +19,6 @@ public class Controller {
     private GameView view;
     private HeroRepository repository;
     private Villian villian;
-    private Path path = Paths.get("heroes.txt");
 
     private List<Hero> heroes;
     private int prevHeroX;
@@ -39,7 +38,7 @@ public class Controller {
             HeroType archetype = view.askHeroType();
             hero = new HeroBuilder(name, archetype).build();
         } else {
-            heroes = repository.loadHeroes(path);
+            heroes = repository.loadHeroes();
             Hero selectedHero = view.askSelectHero(heroes);
             hero = selectedHero;
         }
@@ -87,7 +86,7 @@ public class Controller {
     }
 
     public void endGame(GameResult result) {
-        repository.saveHeroes(heroes, path);
+        repository.saveHeroes(heroes);
         switch (result) {
             case VICTORY -> view.showVictory("Congratulations! You have won the game!");
             case DEFEAT -> view.showGameOver("Game Over! Your hero has been defeated.");

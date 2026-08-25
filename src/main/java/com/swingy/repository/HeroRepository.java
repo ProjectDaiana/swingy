@@ -5,7 +5,7 @@ import java.util.List;
 import java.nio.file.Path;
 
 public interface HeroRepository {
-  public void saveHeroes(List<Hero> heroes, Path path);
+  public void saveHeroes(List<Hero> heroes);
 
-  public List<Hero> loadHeroes(Path path);
+  public List<Hero> loadHeroes();
 }

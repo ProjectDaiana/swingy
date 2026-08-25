@@ -3,6 +3,7 @@ package com.swingy.repository;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +15,9 @@ import com.swingy.model.hero.HeroBuilder;
 import com.swingy.model.hero.HeroType;
 
 public class FileHeroRepository implements HeroRepository {
-    public void saveHeroes(List<Hero> heroes, Path path) {
+    private Path path = Paths.get("heroes.txt");
+
+    public void saveHeroes(List<Hero> heroes) {
         StringBuilder toWrite = new StringBuilder(); // not thread safe, use StringBuffer if needed
         for (Hero hero : heroes) {
             String line = String.format(
@@ -35,7 +38,7 @@ public class FileHeroRepository implements HeroRepository {
         }
     }
 
-    public List<Hero> loadHeroes(Path path) {
+    public List<Hero> loadHeroes() {
         List<Hero> heroes = new ArrayList<>();
         if (!Files.exists(path)) {
             return heroes; // no file yet, nothing to load
@@ -77,12 +80,12 @@ public class FileHeroRepository implements HeroRepository {
             int hitPoints = Integer.parseInt(data.get("hitPoints"));
 
             Hero hero = new HeroBuilder(name, archetype)
-                .level(level)
-                .xp(xp)
-                .attack(attack)
-                .defense(defense)
-                .hitPoints(hitPoints)
-                .build();
+                    .level(level)
+                    .xp(xp)
+                    .attack(attack)
+                    .defense(defense)
+                    .hitPoints(hitPoints)
+                    .build();
             return Optional.of(hero);
         } catch (Exception e) {
             System.out.println("Skipping corrupted hero line: " + e.getMessage());

@@ -62,7 +62,7 @@ public class ConsoleView implements GameView {
             case 2:
                 return HeroType.WIZARD;
             case 3:
-                return HeroType.MESSI;
+                return HeroType.ROGUE;
             default:
                 System.out.println("Invalid choice. Defaulting to Warrior.");
                 return HeroType.WARRIOR;

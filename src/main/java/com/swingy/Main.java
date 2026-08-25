@@ -23,15 +23,14 @@ public class Main {
             if (args.length > 1) {
                   System.out.println("Too many arguments. Please specify only the view type: console or gui");
                   return;
-            } else {
-                  args[0] = args[0].toLowerCase();
             }
-            if (!args[0].equals("console") && !args[0].equals("gui")) {
+            String viewType = args[0].toLowerCase();
+            if (!viewType.equals("console") && !viewType.equals("gui")) {
                   System.out.println("Invalid input. Please specify 'console' or 'gui'");
                   return;
             }
 
-            if (args[0].equals("console")) {
+            if (viewType.equals("console")) {
                   System.out.println("Starting in console mode...");
                   view = new ConsoleView(); // or new GuiView() for GUI
 
@@ -42,5 +41,4 @@ public class Main {
             Controller controller = new Controller(view, repository); // test hero and map
             controller.startGameLoop(); // Start a new game);
       }
-      // scanner.close();/// where to close?
 }

@@ -3,7 +3,7 @@ package com.swingy.model.hero;
 public enum HeroType {
     WARRIOR(10, 5, 50, 3, 2, 15),
     WIZARD(8, 3, 35, 4, 1, 10),
-    MESSI(9, 4, 40, 3, 2, 12);
+    ROGUE(9, 4, 40, 3, 2, 12);
 
     private final int baseAttack;
     private final int baseDefense;
