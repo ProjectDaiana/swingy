@@ -1,5 +1,7 @@
 target/
+*.jar
 *.class
 en.subject.pdf
 swingy_project_plan.md
 CLAUDE.md
+CONTEXT.md
