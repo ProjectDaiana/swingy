@@ -12,18 +12,18 @@ import java.awt.Font;
 import java.awt.GridBagLayout;
 
 public abstract class UIFactory {
-    public enum Components {
+    public enum Style {
         PRIMARY,
         SECONDARY,
         FIELD,
         SELECTOR
     }
 
-    public abstract JButton createButton(String label, Components component);
+    public abstract JButton createButton(String label, Style style);
 
-    public abstract JTextField createTextField(int columns, Components style);
+    public abstract JTextField createTextField(int columns, Style style);
 
-    public abstract <T> JComboBox<T> createSelector(T[] values, Components style);
+    public abstract <T> JComboBox<T> createSelector(T[] values, Style style);
 
     public void applyTitleStyle(JLabel label, float size) {
         label.setFont(label.getFont().deriveFont(Font.BOLD, size));
