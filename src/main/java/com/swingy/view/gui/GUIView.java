@@ -1,5 +1,7 @@
 package com.swingy.view.gui;
 
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -20,10 +22,15 @@ import com.swingy.view.GameView;
 
 import java.awt.CardLayout;
 import java.awt.GridBagConstraints;
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.Insets;
 import java.util.concurrent.CountDownLatch;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.awt.Color;
 
 public class GUIView implements GameView {
 
@@ -41,6 +48,12 @@ public class GUIView implements GameView {
     private final AtomicReference<Boolean> newHeroChoice;
     private final AtomicReference<String> heroNameInput;
     private final AtomicReference<HeroType> HeroTypeInput;
+
+    private ImageIcon heroIcon;
+    private ImageIcon villainIcon;
+    private JLabel[][] gridCells;
+    private JPanel mapGridPanel;
+    private boolean mapReady; // o el nombre que prefieras
     private CountDownLatch newHeroLatch;
     private CountDownLatch heroNameLatch;
     private boolean screensReady;
@@ -54,7 +67,14 @@ public class GUIView implements GameView {
         heroPanel = new JPanel();
         heroNamePanel = new JPanel();
         gamePanel = new JPanel();
+        gamePanel.setBackground(Color.BLACK);
+        gamePanel.setOpaque(true);
         battlePanel = new JPanel();
+        heroIcon = new ImageIcon(
+                getClass().getResource("/images/hero.png"));
+        villainIcon = new ImageIcon(
+                getClass().getResource("/images/villain.png")); // ruta al PNG del villano
+        mapReady = false;
 
         cardPanel.add(startPanel, "start");
         cardPanel.add(heroPanel, "hero");
@@ -65,7 +85,7 @@ public class GUIView implements GameView {
         newHeroChoice = new AtomicReference<>(null);
         heroNameInput = new AtomicReference<>(null);
         HeroTypeInput = new AtomicReference<>(null);
-        uiFactory = new SwingUIFactory();
+        uiFactory = new UIFactory();
         screensReady = false;
 
         frame.setContentPane(cardPanel);
@@ -96,7 +116,7 @@ public class GUIView implements GameView {
         JLabel title = new JLabel("SWINGY");
         uiFactory.applyTitleStyle(title, 28f);
 
-        JButton startButton = uiFactory.createButton("START", UIFactory.Components.PRIMARY);
+        JButton startButton = uiFactory.createButton("START", UIFactory.Style.PRIMARY);
         startButton.addActionListener(e -> cardLayout.show(cardPanel, "hero"));
 
         startPanel.add(title, centeredConstraints(0, 20));
@@ -113,7 +133,7 @@ public class GUIView implements GameView {
         uiFactory.applyTitleStyle(heroTitle, 24f);
 
         JButton createHeroButton = uiFactory.createButton("Create New Hero",
-                UIFactory.Components.PRIMARY);
+                UIFactory.Style.PRIMARY);
         createHeroButton.addActionListener(e -> {
             newHeroChoice.set(Boolean.TRUE);
             if (newHeroLatch != null) {
@@ -122,7 +142,7 @@ public class GUIView implements GameView {
         });
 
         JButton loadHeroButton = uiFactory.createButton("Select Existing Hero",
-                UIFactory.Components.SECONDARY);
+                UIFactory.Style.SECONDARY);
         loadHeroButton.addActionListener(e -> {
             newHeroChoice.set(Boolean.FALSE);
             if (newHeroLatch != null) {
@@ -146,16 +166,16 @@ public class GUIView implements GameView {
         uiFactory.applyTitleStyle(heroNameTitle, 24f);
 
         // Create Input Field and Selector
-        JTextField heroNameField = uiFactory.createTextField(18, UIFactory.Components.FIELD);
+        JTextField heroNameField = uiFactory.createTextField(18, UIFactory.Style.FIELD);
         JLabel HeroTypeTitle = new JLabel("Choose hero class");
         uiFactory.applyTitleStyle(HeroTypeTitle, 18f);
 
         // Create HeroType Selector
         JComboBox<HeroType> HeroTypeSelector = uiFactory.createSelector(HeroType.values(),
-                UIFactory.Components.SELECTOR);
+                UIFactory.Style.SELECTOR);
 
         // Create Submit Button
-        JButton submitButton = uiFactory.createButton("Continue", UIFactory.Components.PRIMARY);
+        JButton submitButton = uiFactory.createButton("Continue", UIFactory.Style.PRIMARY);
         submitButton.addActionListener(e -> {
             String name = heroNameField.getText().trim();
             HeroType selectedClass = (HeroType) HeroTypeSelector.getSelectedItem();
@@ -244,6 +264,7 @@ public class GUIView implements GameView {
                 "Defense: " + hero.getDefense() + "<br/>" +
                 "Hit Points: " + hero.getHitPoints() + "</html>");
         uiFactory.applyTitleStyle(heroDetails, 18f);
+
         heroNamePanel.add(heroDetails, centeredConstraints(0, 20));
         cardLayout.show(cardPanel, "heroName");
         // JOptionPane.showMessageDialog(frame, heroDetails, "Hero Details",
@@ -265,55 +286,70 @@ public class GUIView implements GameView {
         return false;
     }
 
-    @Override
-    public void drawMap(GameMap map, Hero hero) {
-        Timer timer = new Timer(2000, event -> {
-            gamePanel.removeAll();
-            uiFactory.configureScreenPanel(gamePanel);
-
-            JLabel heroDetails = new JLabel("<html>Hero Details:<br/>" +
-                    "Name: " + hero.getName() + "<br/>" +
-                    "Class: " + hero.getHeroType().toString() + "<br/>" +
-                    "Level: " + hero.getLevel() + "<br/>" +
-                    "XP: " + hero.getXp() + "<br/>" +
-                    "Attack: " + hero.getAttack() + "<br/>" +
-                    "Defense: " + hero.getDefense() + "<br/>" +
-                    "Hit Points: " + hero.getHitPoints() + "</html>");
-            uiFactory.applyTitleStyle(heroDetails, 16f);
-
-            JTextArea mapArea = new JTextArea(buildMapText(map));
-            mapArea.setEditable(false);
-            mapArea.setFont(new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.PLAIN, 16));
-
-            gamePanel.add(heroDetails, centeredConstraints(0, 20));
-            gamePanel.add(mapArea, centeredConstraints(1, 0));
-            gamePanel.revalidate();
-            gamePanel.repaint();
-            cardLayout.show(cardPanel, "game");
-        });
-        timer.setRepeats(false);
-        timer.start();
-
+    private JLabel drawHeroDetailsBar(Hero hero) {
+        JLabel heroDetails = new JLabel("<html>Hero Details:<br/>" +
+                "Name: " + hero.getName() + "<br/>" +
+                "Class: " + hero.getHeroType().toString() + "<br/>" +
+                "Level: " + hero.getLevel() + "<br/>" +
+                "XP: " + hero.getXp() + "<br/>" +
+                "Attack: " + hero.getAttack() + "<br/>" +
+                "Defense: " + hero.getDefense() + "<br/>" +
+                "Hit Points: " + hero.getHitPoints() + "</html>");
+        uiFactory.applyTitleStyle(heroDetails, 18f);
+        gamePanel.add(heroDetails, BorderLayout.NORTH);
+        return heroDetails;
     }
 
-    private String buildMapText(GameMap map) {
-        StringBuilder builder = new StringBuilder();
-        int size = map.getSize();
+    @Override
+    public void drawMap(GameMap map, Hero hero) {
+        uiFactory.configureScreenPanel(gamePanel);
+        gamePanel.removeAll();
+        gamePanel.setLayout(new BorderLayout(10, 10));
+        if (!mapReady) {
+            JLabel heroDetailsBar = drawHeroDetailsBar(hero); // construye UNA VEZ: crea label con detalles del héroe
+            mapGridPanel = initMap(map); // construye UNA VEZ: crea labels, arma mapGridPanel, llena gridCells
+            gamePanel.add(heroDetailsBar, BorderLayout.NORTH);
+            gamePanel.add(mapGridPanel, BorderLayout.CENTER);
+            mapReady = true;
+        }
+        // updateGrid(map, hero); // actualiza SOLO los iconos, cada turno
+        gamePanel.revalidate();
+        gamePanel.repaint();
+        cardLayout.show(cardPanel, "game");
+    }
 
+    private JPanel initMap(GameMap map) {
+        int size = map.getSize();
+        GridLayout grid = new GridLayout(size, size);
+        JPanel mapPanel = new JPanel(grid);
+
+        gridCells = new JLabel[size][size];
+        mapPanel.setBackground(UIFactory.DARK_GRAY);
+        mapPanel.setOpaque(true); // Asegura que el fondo sea visible
+        heroIcon = uiFactory.scaleIcon(heroIcon); // Escala el icono del héroe
+        villainIcon = uiFactory.scaleIcon(villainIcon); // Escala el icono
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
+
+                JLabel cell = new JLabel();
+                cell.setHorizontalAlignment(JLabel.CENTER);
+                cell.setVerticalAlignment(JLabel.CENTER);
+
+                // Make the cell visible
+                cell.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+
                 if (x == map.getHeroX() && y == map.getHeroY()) {
-                    builder.append("H ");
+                    cell.setIcon(heroIcon); // or heroIcon scaled
                 } else if (map.hasVillain(x, y)) {
-                    builder.append("V ");
-                } else {
-                    builder.append(". ");
+                    cell.setIcon(villainIcon); // or villainIcon scaled
                 }
+
+                gridCells[y][x] = cell;
+                mapPanel.add(cell);
             }
-            builder.append('\n');
         }
 
-        return builder.toString();
+        return mapPanel;
     }
 
     @Override
