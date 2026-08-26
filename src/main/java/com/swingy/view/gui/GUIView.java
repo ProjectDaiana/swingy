@@ -67,13 +67,9 @@ public class GUIView implements GameView {
         heroPanel = new JPanel();
         heroNamePanel = new JPanel();
         gamePanel = new JPanel();
-        gamePanel.setBackground(Color.BLACK);
-        gamePanel.setOpaque(true);
         battlePanel = new JPanel();
-        heroIcon = new ImageIcon(
-                getClass().getResource("/images/hero.png"));
-        villainIcon = new ImageIcon(
-                getClass().getResource("/images/villain.png")); // ruta al PNG del villano
+        /// remember to make this same as for heroIcon, so that the villain icon is and
+        /// add an exception handling in case the resource is not found
         mapReady = false;
 
         cardPanel.add(startPanel, "start");
@@ -92,6 +88,24 @@ public class GUIView implements GameView {
         frame.setSize(800, 600);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
+    }
+
+    private ImageIcon loadIcon(String path) {
+        java.net.URL url = getClass().getResource(path);
+        if (url == null) {
+            throw new IllegalStateException("Missing required resource: " + path);
+        }
+        return new ImageIcon(url);
+    }
+
+    public ImageIcon loadHeroIcon(HeroType heroType) {
+        String path = "/images/h_" + heroType.toString().toLowerCase() + ".png";
+        return loadIcon(path);
+    }
+
+    public ImageIcon loadVillainIcon() {
+        String path = "/images/v_" + "dragon" + ".png"; // replace this to select randomly or level based
+        return loadIcon(path);
     }
 
     public void startGame() {
@@ -114,7 +128,7 @@ public class GUIView implements GameView {
         uiFactory.configureScreenPanel(startPanel);
 
         JLabel title = new JLabel("SWINGY");
-        uiFactory.applyTitleStyle(title, 28f);
+        uiFactory.applyTextStyle(title, Typography.Style.TITLE);
 
         JButton startButton = uiFactory.createButton("START", UIFactory.Style.PRIMARY);
         startButton.addActionListener(e -> cardLayout.show(cardPanel, "hero"));
@@ -130,7 +144,7 @@ public class GUIView implements GameView {
         uiFactory.configureScreenPanel(heroPanel);
 
         JLabel heroTitle = new JLabel("Choose hero setup");
-        uiFactory.applyTitleStyle(heroTitle, 24f);
+        uiFactory.applyTextStyle(heroTitle, Typography.Style.H1);
 
         JButton createHeroButton = uiFactory.createButton("Create New Hero",
                 UIFactory.Style.PRIMARY);
@@ -163,12 +177,12 @@ public class GUIView implements GameView {
 
         // Create Title
         JLabel heroNameTitle = new JLabel("Name your hero");
-        uiFactory.applyTitleStyle(heroNameTitle, 24f);
+        uiFactory.applyTextStyle(heroNameTitle, Typography.Style.H1);
 
         // Create Input Field and Selector
         JTextField heroNameField = uiFactory.createTextField(18, UIFactory.Style.FIELD);
         JLabel HeroTypeTitle = new JLabel("Choose hero class");
-        uiFactory.applyTitleStyle(HeroTypeTitle, 18f);
+        uiFactory.applyTextStyle(HeroTypeTitle, Typography.Style.H2);
 
         // Create HeroType Selector
         JComboBox<HeroType> HeroTypeSelector = uiFactory.createSelector(HeroType.values(),
@@ -182,6 +196,7 @@ public class GUIView implements GameView {
             if (!name.isEmpty() && selectedClass != null) {
                 heroNameInput.set(name);
                 HeroTypeInput.set(selectedClass);
+                heroIcon = loadHeroIcon(selectedClass);
                 if (heroNameLatch != null) {
                     heroNameLatch.countDown();
                 }
@@ -295,7 +310,7 @@ public class GUIView implements GameView {
                 "Attack: " + hero.getAttack() + "<br/>" +
                 "Defense: " + hero.getDefense() + "<br/>" +
                 "Hit Points: " + hero.getHitPoints() + "</html>");
-        uiFactory.applyTitleStyle(heroDetails, 18f);
+        uiFactory.applyTextStyle(heroDetails, Typography.Style.BODY);
         gamePanel.add(heroDetails, BorderLayout.NORTH);
         return heroDetails;
     }
@@ -324,10 +339,10 @@ public class GUIView implements GameView {
         JPanel mapPanel = new JPanel(grid);
 
         gridCells = new JLabel[size][size];
-        mapPanel.setBackground(UIFactory.DARK_GRAY);
+        mapPanel.setBackground(ColorPalette.DARK_GRAY);
         mapPanel.setOpaque(true); // Asegura que el fondo sea visible
         heroIcon = uiFactory.scaleIcon(heroIcon); // Escala el icono del héroe
-        villainIcon = uiFactory.scaleIcon(villainIcon); // Escala el icono
+        villainIcon = uiFactory.scaleIcon(loadVillainIcon()); // Escala el icono
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
 
