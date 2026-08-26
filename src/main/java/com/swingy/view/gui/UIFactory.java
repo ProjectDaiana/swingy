@@ -8,7 +8,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridBagLayout;
@@ -21,8 +20,10 @@ public class UIFactory {
         SELECTOR
     }
 
-    public static final Color DARK_GRAY = new Color(21, 21, 21);
-    public static final Color LIGHT_GRAY = new Color(235, 235, 235);
+    public void applyTextStyle(JLabel label, Typography.Style style) {
+        label.setFont(label.getFont().deriveFont(style.weight, style.size));
+        label.setForeground(style.color);
+    }
 
     public void applyTitleStyle(JLabel label, float size) {
         label.setFont(label.getFont().deriveFont(Font.BOLD, size));
@@ -32,7 +33,7 @@ public class UIFactory {
         panel.removeAll();
         panel.setLayout(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
-        panel.setBackground(new Color(17, 17, 17));
+        panel.setBackground(ColorPalette.BLACK);
     }
 
     public JButton createButton(String label, Style style) {
@@ -41,12 +42,12 @@ public class UIFactory {
         switch (style) {
             case PRIMARY -> {
                 button.setBackground(new Color(32, 99, 155));
-                button.setForeground(Color.WHITE);
+                button.setForeground(ColorPalette.BLACK);
                 button.setFont(button.getFont().deriveFont(Font.BOLD, 16f));
             }
             case SECONDARY -> {
                 button.setBackground(new Color(235, 235, 235));
-                button.setForeground(new Color(35, 35, 35));
+                button.setForeground(ColorPalette.BLACK);
                 button.setFont(button.getFont().deriveFont(Font.PLAIN, 16f));
             }
             default -> throw new IllegalArgumentException("Unsupported button style: " + style);
@@ -58,8 +59,9 @@ public class UIFactory {
         JTextField textField = new JTextField(columns);
         // switch (style) {
         // case FIELD -> {
-        textField.setBackground(Color.WHITE);
-        textField.setForeground(Color.BLACK);
+        textField.setBackground(ColorPalette.BLACK);
+        // textField.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        textField.setForeground(ColorPalette.WHITE);
         // textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 16f));
         // }
         // default -> throw new IllegalArgumentException("Unsupported text field style:
@@ -72,7 +74,7 @@ public class UIFactory {
         JComboBox<T> selector = new JComboBox<>(values);
         // switch (style) {
         // case SELECTOR -> {
-        selector.setBackground(Color.WHITE);
+        selector.setBackground(ColorPalette.WHITE);
         selector.setForeground(new Color(35, 35, 35));
         selector.setFont(selector.getFont().deriveFont(Font.PLAIN, 16f));
         // }
