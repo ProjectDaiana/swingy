@@ -59,8 +59,8 @@ public class UIFactory {
         JTextField textField = new JTextField(columns);
         // switch (style) {
         // case FIELD -> {
-        textField.setBackground(ColorPalette.BLACK);
-        // textField.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        textField.setBackground(ColorPalette.DARK_GRAY);
+        textField.setBorder(BorderFactory.createLineBorder(ColorPalette.WHITE, 1));
         textField.setForeground(ColorPalette.WHITE);
         // textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 16f));
         // }
@@ -74,7 +74,8 @@ public class UIFactory {
         JComboBox<T> selector = new JComboBox<>(values);
         // switch (style) {
         // case SELECTOR -> {
-        selector.setBackground(ColorPalette.WHITE);
+        selector.setBackground(ColorPalette.DARK_GRAY);
+        selector.setBorder(BorderFactory.createLineBorder(ColorPalette.WHITE, 1));
         selector.setForeground(new Color(35, 35, 35));
         selector.setFont(selector.getFont().deriveFont(Font.PLAIN, 16f));
         // }
