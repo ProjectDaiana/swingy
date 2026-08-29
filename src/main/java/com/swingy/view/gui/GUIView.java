@@ -28,8 +28,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.Insets;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.BlockingQueue;
 import java.awt.Color;
 
 public class GUIView implements GameView {
@@ -46,16 +48,19 @@ public class GUIView implements GameView {
     private final UIFactory uiFactory;
 
     private final AtomicReference<Boolean> newHeroChoice;
-    private final AtomicReference<String> heroNameInput;
+    // private final AtomicReference<String> heroNameInput;
     private final AtomicReference<HeroType> HeroTypeInput;
 
+    /// private final BlockingQueue<Boolean> newHeroChoice;
+    private final BlockingQueue<String> heroNameInput;
+    // private final BlockingQueue<DirectionType> heroDirectionInput;
     private ImageIcon heroIcon;
     private ImageIcon villainIcon;
     private JLabel[][] gridCells;
     private JPanel mapGridPanel;
     private boolean mapReady; // o el nombre que prefieras
     private CountDownLatch newHeroLatch;
-    private CountDownLatch heroNameLatch;
+    // private CountDownLatch heroNameLatch;
     private boolean screensReady;
 
     public GUIView() {
@@ -79,8 +84,10 @@ public class GUIView implements GameView {
         cardPanel.add(battlePanel, "battle");
 
         newHeroChoice = new AtomicReference<>(null);
-        heroNameInput = new AtomicReference<>(null);
         HeroTypeInput = new AtomicReference<>(null);
+        /// newHeroChoice = new BlockingQueue<LinkedBlockingQueue<Boolean>>();
+        heroNameInput = new LinkedBlockingQueue<String>();
+        // heroDirectionInput = new LinkedBlockingQueue<DirectionType>();
         uiFactory = new UIFactory();
         screensReady = false;
 
@@ -194,11 +201,12 @@ public class GUIView implements GameView {
             String name = heroNameField.getText().trim();
             HeroType selectedClass = (HeroType) HeroTypeSelector.getSelectedItem();
             if (!name.isEmpty() && selectedClass != null) {
-                heroNameInput.set(name);
-                HeroTypeInput.set(selectedClass);
-                heroIcon = loadHeroIcon(selectedClass);
-                if (heroNameLatch != null) {
-                    heroNameLatch.countDown();
+                try {
+                    heroNameInput.put(name);
+                    HeroTypeInput.set(selectedClass);
+                    heroIcon = loadHeroIcon(selectedClass);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
                 }
             }
 
@@ -241,19 +249,17 @@ public class GUIView implements GameView {
         }
 
         buildHeroCreationScreen();
-        heroNameInput.set(null);
         HeroTypeInput.set(HeroType.values()[0]);
-        heroNameLatch = new CountDownLatch(1);
         cardLayout.show(cardPanel, "heroName");
-
+        String heroName = null;
         try {
-            heroNameLatch.await();
+            heroName = heroNameInput.take();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return null;
         }
 
-        return heroNameInput.get();
+        return heroName;
     }
 
     @Override
