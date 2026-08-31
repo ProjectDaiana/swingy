@@ -17,6 +17,7 @@ import com.swingy.model.artifact.Artifact;
 import com.swingy.model.battle.BattleResult;
 import com.swingy.model.hero.Hero;
 import com.swingy.model.hero.HeroType;
+import com.swingy.model.hero.HeroBuilder;
 import com.swingy.model.map.GameMap;
 import com.swingy.view.GameView;
 
@@ -49,7 +50,7 @@ public class GUIView implements GameView {
 
     private final AtomicReference<Boolean> newHeroChoice;
     // private final AtomicReference<String> heroNameInput;
-    private final AtomicReference<HeroType> HeroTypeInput;
+    private HeroType HeroTypeInput;
 
     /// private final BlockingQueue<Boolean> newHeroChoice;
     private final BlockingQueue<String> heroNameInput;
@@ -84,7 +85,6 @@ public class GUIView implements GameView {
         cardPanel.add(battlePanel, "battle");
 
         newHeroChoice = new AtomicReference<>(null);
-        HeroTypeInput = new AtomicReference<>(null);
         /// newHeroChoice = new BlockingQueue<LinkedBlockingQueue<Boolean>>();
         heroNameInput = new LinkedBlockingQueue<String>();
         // heroDirectionInput = new LinkedBlockingQueue<DirectionType>();
@@ -199,11 +199,11 @@ public class GUIView implements GameView {
         JButton submitButton = uiFactory.createButton("Continue", UIFactory.Style.PRIMARY);
         submitButton.addActionListener(e -> {
             String name = heroNameField.getText().trim();
-            HeroType selectedClass = (HeroType) HeroTypeSelector.getSelectedItem();
+            HeroType selectedClass = (HeroType) HeroTypeSelector.getSelectedItem(); /// I do not like this castnig
             if (!name.isEmpty() && selectedClass != null) {
                 try {
                     heroNameInput.put(name);
-                    HeroTypeInput.set(selectedClass);
+                    HeroTypeInput = selectedClass;
                     heroIcon = loadHeroIcon(selectedClass);
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
@@ -243,13 +243,12 @@ public class GUIView implements GameView {
     }
 
     @Override
-    public String askHeroName() {
+    public Hero createNewHero() {
         if (!screensReady) {
             startGame();
         }
 
         buildHeroCreationScreen();
-        HeroTypeInput.set(HeroType.values()[0]);
         cardLayout.show(cardPanel, "heroName");
         String heroName = null;
         try {
@@ -259,12 +258,7 @@ public class GUIView implements GameView {
             return null;
         }
 
-        return heroName;
-    }
-
-    @Override
-    public HeroType askHeroType() {
-        return HeroTypeInput.get();
+        return new HeroBuilder(heroName, HeroTypeInput).build();
     }
 
     @Override

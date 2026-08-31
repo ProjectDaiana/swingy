@@ -6,7 +6,6 @@ import com.swingy.model.DirectionType;
 import com.swingy.model.artifact.Artifact;
 import com.swingy.model.battle.BattleResult;
 import com.swingy.model.hero.Hero;
-import com.swingy.model.hero.HeroType;
 import com.swingy.model.map.GameMap;
 
 // because GuiView might need to inherit from 2 diferent classes, we will use an
@@ -14,9 +13,7 @@ import com.swingy.model.map.GameMap;
 public interface GameView {
     boolean askNewHero();
 
-    String askHeroName();
-
-    HeroType askHeroType();
+    Hero createNewHero();
 
     Hero askSelectHero(List<Hero> heroes);
 

@@ -1,5 +1,6 @@
 package com.swingy.view.console;
 
+import com.swingy.model.hero.HeroBuilder;
 import com.swingy.model.hero.Hero;
 import com.swingy.model.hero.HeroType;
 import com.swingy.view.GameView;
@@ -33,6 +34,12 @@ public class ConsoleView implements GameView {
         System.out.println("Battle Result: " + result.getResult().toString());
     }
 
+    public Hero createNewHero() {
+        String name = askHeroName();
+        HeroType heroType = askHeroType();
+        return new HeroBuilder(name, heroType).build();
+    }
+
     public boolean askNewHero() {
         System.out.println("Do you want to create a new hero or load an existing one? (1: Create, 2: Load)");
         String input = scanner.nextLine();
@@ -49,7 +56,7 @@ public class ConsoleView implements GameView {
     }
 
     public HeroType askHeroType() {
-        System.out.println("Select hero class (1: Warrior, 2: Mage, 3: Archer): ");
+        System.out.println("Select hero class (1: Warrior, 2: Mage, 3: Rogue): ");
         String input = scanner.nextLine();
         if (!input.matches("\\d+")) {
             System.out.println("Only digits are allowed.");

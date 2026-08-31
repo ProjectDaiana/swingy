@@ -1,8 +1,6 @@
 package com.swingy.controller;
 
 import com.swingy.model.hero.Hero;
-import com.swingy.model.hero.HeroBuilder;
-import com.swingy.model.hero.HeroType;
 import com.swingy.repository.HeroRepository;
 import com.swingy.model.villain.Villian;
 import com.swingy.view.GameView;
@@ -31,12 +29,9 @@ public class Controller {
 
     public Hero setupHero() {
         boolean isNewHero = view.askNewHero();
-        String name = null;
         Hero hero = null;
         if (isNewHero) {
-            name = view.askHeroName();
-            HeroType archetype = view.askHeroType();
-            hero = new HeroBuilder(name, archetype).build();
+            hero =  view.createNewHero();
         } else {
             heroes = repository.loadHeroes();
             Hero selectedHero = view.askSelectHero(heroes);
