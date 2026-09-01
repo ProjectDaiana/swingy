@@ -15,6 +15,8 @@ public class GameMap {
     private final int size;
     private int heroX;
     private int heroY;
+    private int prevHeroX = -1;
+    private int prevHeroY = -1;
     private final Map<String, Villian> villains = new HashMap<>();
 
     public GameMap(int heroLevel) {
@@ -44,6 +46,8 @@ public class GameMap {
     }
 
     public void moveHero(Direction dir) {
+        prevHeroX = heroX;
+        prevHeroY = heroY;
         switch (dir) {
             case NORTH -> heroY--;
             case SOUTH -> heroY++;
@@ -52,9 +56,9 @@ public class GameMap {
         }
     }
 
-    public void moveHeroTo(int prevX, int prevY) {
-        this.heroX = prevX;
-        this.heroY = prevY;
+    public void moveHeroToPrevPosition() {
+        this.heroX = prevHeroX;
+        this.heroY = prevHeroY;
     }
 
     public boolean isAtBorder() {
@@ -79,6 +83,14 @@ public class GameMap {
 
     public int getHeroY() {
         return heroY;
+    }
+
+    public int getPrevHeroX() {
+        return prevHeroX;
+    }
+
+    public int getPrevHeroY() {
+        return prevHeroY;
     }
 
     public boolean hasVillain(int x, int y) {

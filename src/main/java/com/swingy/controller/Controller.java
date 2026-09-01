@@ -19,16 +19,12 @@ public class Controller {
     private GameView view;
     private HeroRepository repository;
     private Villian villian;
-
     private List<Hero> heroes;
-    private int prevHeroX;
-    private int prevHeroY;
 
     public Controller(GameView view, HeroRepository repository) {
         this.view = view;
         this.repository = repository;
     }
-
 
     public Hero setupHero() {
         boolean isNewHero = view.askNewHero();
@@ -66,8 +62,6 @@ public class Controller {
             }
 
             // Ask for direction and move hero
-            prevHeroX = map.getHeroX();
-            prevHeroY = map.getHeroY();
             switch (view.askDirection()) {
                 case NORTH -> map.moveHero(GameMap.Direction.NORTH);
                 case SOUTH -> map.moveHero(GameMap.Direction.SOUTH);
@@ -104,7 +98,7 @@ public class Controller {
         view.showMessage("You chose to flee from the battle.");
         if (Battle.tryToRun()) {
             view.showMessage("You successfully fled from the battle.");
-            map.moveHeroTo(prevHeroX, prevHeroY);
+            map.moveHeroToPrevPosition();
         } else {
             view.showMessage("Too slow. Now you MUST fight!");
             resolveBattle(hero, map);
