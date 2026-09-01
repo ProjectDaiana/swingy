@@ -1,6 +1,5 @@
 package com.swingy.view.console;
 
-import com.swingy.model.hero.HeroBuilder;
 import com.swingy.model.hero.Hero;
 import com.swingy.model.hero.HeroType;
 import com.swingy.view.GameView;
@@ -8,6 +7,7 @@ import com.swingy.model.DirectionType;
 import com.swingy.model.battle.BattleResult;
 import com.swingy.model.artifact.Artifact;
 import com.swingy.model.map.GameMap;
+import com.swingy.view.HeroCreationData;
 import java.util.Scanner;
 import java.util.List;
 
@@ -34,10 +34,10 @@ public class ConsoleView implements GameView {
         System.out.println("Battle Result: " + result.getResult().toString());
     }
 
-    public Hero createNewHero() {
+    public HeroCreationData createNewHero() {
         String name = askHeroName();
         HeroType heroType = askHeroType();
-        return new HeroBuilder(name, heroType).build();
+        return new HeroCreationData(name, heroType);
     }
 
     public boolean askNewHero() {

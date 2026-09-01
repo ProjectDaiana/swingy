@@ -1,9 +1,11 @@
 package com.swingy.controller;
 
 import com.swingy.model.hero.Hero;
+import com.swingy.model.hero.HeroBuilder;
 import com.swingy.repository.HeroRepository;
 import com.swingy.model.villain.Villian;
 import com.swingy.view.GameView;
+import com.swingy.view.HeroCreationData;
 import com.swingy.model.artifact.Artifact;
 import com.swingy.model.battle.Battle;
 import com.swingy.model.battle.BattleResult;
@@ -27,16 +29,19 @@ public class Controller {
         this.repository = repository;
     }
 
+
     public Hero setupHero() {
         boolean isNewHero = view.askNewHero();
-        Hero hero = null;
+        Hero hero;
+
         if (isNewHero) {
-            hero =  view.createNewHero();
+            HeroCreationData data = view.createNewHero();
+            hero = new HeroBuilder(data.name(), data.heroType()).build(); // el Controller construye acá
         } else {
             heroes = repository.loadHeroes();
-            Hero selectedHero = view.askSelectHero(heroes);
-            hero = selectedHero;
+            hero = view.askSelectHero(heroes);
         }
+
         view.showHeroDetails(hero);
         return hero;
     }
