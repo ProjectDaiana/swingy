@@ -11,8 +11,6 @@ import com.swingy.model.battle.Battle;
 import com.swingy.model.battle.BattleResult;
 import com.swingy.model.map.GameMap;
 import com.swingy.model.GameResult;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 public class Controller {
