@@ -10,6 +10,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import com.swingy.model.DirectionType;
@@ -17,9 +18,9 @@ import com.swingy.model.artifact.Artifact;
 import com.swingy.model.battle.BattleResult;
 import com.swingy.model.hero.Hero;
 import com.swingy.model.hero.HeroType;
-import com.swingy.model.hero.HeroBuilder;
 import com.swingy.model.map.GameMap;
 import com.swingy.view.GameView;
+import com.swingy.view.HeroCreationData;
 
 import java.awt.CardLayout;
 import java.awt.GridBagConstraints;
@@ -49,19 +50,17 @@ public class GUIView implements GameView {
     private final UIFactory uiFactory;
 
     private final AtomicReference<Boolean> newHeroChoice;
-    // private final AtomicReference<String> heroNameInput;
     private HeroType HeroTypeInput;
 
     /// private final BlockingQueue<Boolean> newHeroChoice;
     private final BlockingQueue<String> heroNameInput;
-    // private final BlockingQueue<DirectionType> heroDirectionInput;
+    private final BlockingQueue<DirectionType> heroDirectionInput;
     private ImageIcon heroIcon;
     private ImageIcon villainIcon;
     private JLabel[][] gridCells;
     private JPanel mapGridPanel;
     private boolean mapReady; // o el nombre que prefieras
     private CountDownLatch newHeroLatch;
-    // private CountDownLatch heroNameLatch;
     private boolean screensReady;
 
     public GUIView() {
@@ -87,7 +86,7 @@ public class GUIView implements GameView {
         newHeroChoice = new AtomicReference<>(null);
         /// newHeroChoice = new BlockingQueue<LinkedBlockingQueue<Boolean>>();
         heroNameInput = new LinkedBlockingQueue<String>();
-        // heroDirectionInput = new LinkedBlockingQueue<DirectionType>();
+        heroDirectionInput = new LinkedBlockingQueue<DirectionType>();
         uiFactory = new UIFactory();
         screensReady = false;
 
@@ -95,6 +94,7 @@ public class GUIView implements GameView {
         frame.setSize(800, 600);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
+        setupKeyBindings();
     }
 
     private ImageIcon loadIcon(String path) {
@@ -243,7 +243,7 @@ public class GUIView implements GameView {
     }
 
     @Override
-    public Hero createNewHero() {
+    public HeroCreationData createNewHero() {
         if (!screensReady) {
             startGame();
         }
@@ -258,7 +258,7 @@ public class GUIView implements GameView {
             return null;
         }
 
-        return new HeroBuilder(heroName, HeroTypeInput).build();
+        return new HeroCreationData(heroName, HeroTypeInput);
     }
 
     @Override
@@ -288,7 +288,14 @@ public class GUIView implements GameView {
 
     @Override
     public DirectionType askDirection() {
-        return null;
+        DirectionType direction = null;
+        try {
+            direction = heroDirectionInput.take(); // bloquea hasta que el usuario clickea W/A/S/D
+            System.out.println("Direction received: " + direction);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return direction;
     }
 
     @Override
@@ -317,20 +324,41 @@ public class GUIView implements GameView {
 
     @Override
     public void drawMap(GameMap map, Hero hero) {
-        uiFactory.configureScreenPanel(gamePanel);
-        gamePanel.removeAll();
-        gamePanel.setLayout(new BorderLayout(10, 10));
-        if (!mapReady) {
-            JLabel heroDetailsBar = drawHeroDetailsBar(hero); // construye UNA VEZ: crea label con detalles del héroe
-            mapGridPanel = initMap(map); // construye UNA VEZ: crea labels, arma mapGridPanel, llena gridCells
-            gamePanel.add(heroDetailsBar, BorderLayout.NORTH);
-            gamePanel.add(mapGridPanel, BorderLayout.CENTER);
-            mapReady = true;
+        SwingUtilities.invokeLater(() -> {
+            if (!mapReady) {
+                uiFactory.configureScreenPanel(gamePanel);
+                gamePanel.removeAll();
+                gamePanel.setLayout(new BorderLayout(10, 10));
+                JLabel heroDetailsBar = drawHeroDetailsBar(hero);
+                mapGridPanel = initMap(map);
+                gamePanel.add(heroDetailsBar, BorderLayout.NORTH);
+                gamePanel.add(mapGridPanel, BorderLayout.CENTER);
+                mapReady = true;
+            } else {
+                System.out.println("Updating map for hero position: (" + map.getHeroX() + ", " + map.getHeroY() + ")");
+                updateGrid(map, hero);
+            }
+            gamePanel.revalidate();
+            gamePanel.repaint();
+            cardLayout.show(cardPanel, "game");
+            frame.requestFocusInWindow();
+        });
+    }
+
+    private void updateGrid(GameMap map, Hero hero) {
+        int newX = map.getHeroX();
+        int newY = map.getHeroY();
+        int prevX = map.getPrevHeroX();
+        int prevY = map.getPrevHeroY();
+
+        // Limpiar la celda anterior del héroe (si existe una posición previa válida)
+        if (prevX != -1 && prevY != -1 && (prevX != newX || prevY != newY)) {
+            JLabel prevCell = gridCells[prevY][prevX];
+            prevCell.setIcon(map.hasVillain(prevX, prevY) ? villainIcon : null);
         }
-        // updateGrid(map, hero); // actualiza SOLO los iconos, cada turno
-        gamePanel.revalidate();
-        gamePanel.repaint();
-        cardLayout.show(cardPanel, "game");
+        // Pintar la celda nueva con el héroe
+        gridCells[newY][newX].setIcon(heroIcon);
+        System.out.println("Moving hero to new position: (" + newX + ", " + newY + ")");
     }
 
     private JPanel initMap(GameMap map) {
@@ -345,7 +373,6 @@ public class GUIView implements GameView {
         villainIcon = uiFactory.scaleIcon(loadVillainIcon()); // Escala el icono
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
-
                 JLabel cell = new JLabel();
                 cell.setHorizontalAlignment(JLabel.CENTER);
                 cell.setVerticalAlignment(JLabel.CENTER);
@@ -365,6 +392,37 @@ public class GUIView implements GameView {
         }
 
         return mapPanel;
+    }
+
+    private void setupKeyBindings() {
+        frame.setFocusable(true);
+        frame.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                switch (e.getKeyCode()) {
+                    case java.awt.event.KeyEvent.VK_UP:
+                        submitDirection(DirectionType.NORTH);
+                        break;
+                    case java.awt.event.KeyEvent.VK_DOWN:
+                        submitDirection(DirectionType.SOUTH);
+                        break;
+                    case java.awt.event.KeyEvent.VK_LEFT:
+                        submitDirection(DirectionType.WEST);
+                        break;
+                    case java.awt.event.KeyEvent.VK_RIGHT:
+                        submitDirection(DirectionType.EAST);
+                        break;
+                }
+            }
+        });
+    }
+
+    private void submitDirection(DirectionType direction) {
+        try {
+            heroDirectionInput.put(direction);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
