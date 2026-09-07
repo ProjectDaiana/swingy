@@ -149,28 +149,28 @@ stateDiagram-v2
 
 ## Sprites
 
-All icons are 24 × 24 px pixel art, displayed below at 2× (48 px) for sharpness.
+All icons are 24 × 24 px pixel art.
 
 ### Heroes
 
 | Warrior | Rogue | Wizard |
 |:---:|:---:|:---:|
-| <img src="src/main/resources/images/h_warrior.png" width="48" height="48"> | <img src="src/main/resources/images/h_rogue.png" width="48" height="48"> | <img src="src/main/resources/images/h_wizard.png" width="48" height="48"> |
+| <img src="src/main/resources/images/h_warrior.png" width="24" height="24"> | <img src="src/main/resources/images/h_rogue.png" width="24" height="24"> | <img src="src/main/resources/images/h_wizard.png" width="24" height="24"> |
 
 ### Villains
 
 | Dragon | Dracula | Skeleton |
 |:---:|:---:|:---:|
-| <img src="src/main/resources/images/v_dragon.png" width="48" height="48"> | <img src="src/main/resources/images/v_dracula.png" width="48" height="48"> | <img src="src/main/resources/images/v_skeleton.png" width="48" height="48"> |
+| <img src="src/main/resources/images/v_dragon.png" width="24" height="24"> | <img src="src/main/resources/images/v_dracula.png" width="24" height="24"> | <img src="src/main/resources/images/v_skeleton.png" width="24" height="24"> |
 
 ### Artifacts
 
 | Weapon | Armor | Helm |
 |:---:|:---:|:---:|
-| <img src="src/main/resources/images/a_weapon.png" width="48" height="48"> | <img src="src/main/resources/images/a_armor.png" width="48" height="48"> | <img src="src/main/resources/images/a_helm.png" width="48" height="48"> |
+| <img src="src/main/resources/images/a_weapon.png" width="24" height="24"> | <img src="src/main/resources/images/a_armor.png" width="24" height="24"> | <img src="src/main/resources/images/a_helm.png" width="24" height="24"> |
 
 ### Battle
 
 | Fight | Fight 2 | Lose |
 |:---:|:---:|:---:|
-| <img src="src/main/resources/images/fight_1.png" width="48" height="48"> | <img src="src/main/resources/images/fight_2.png" width="48" height="48"> | <img src="src/main/resources/images/lose.png" width="48" height="48"> |
+| <img src="src/main/resources/images/fight_1.png" width="24" height="24"> | <img src="src/main/resources/images/fight_2.png" width="24" height="24"> | <img src="src/main/resources/images/lose.png" width="24" height="24"> |
