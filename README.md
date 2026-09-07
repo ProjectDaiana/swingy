@@ -117,24 +117,6 @@ graph TD
 ```
 
 ---
-
-## Screens & Navigation
-
-The GUI uses a `CardLayout` to switch between screens. The controller drives which card is shown via `GameView` method calls.
-
-```mermaid
-stateDiagram-v2
-    [*] --> Start
-    Start --> HeroChoice : click START
-    HeroChoice --> HeroCreation : Create New Hero
-    HeroChoice --> HeroSelect : Select Existing Hero
-    HeroCreation --> Game : submit name + class
-    HeroSelect --> Game : pick from list
-    Game --> Battle : villain encountered
-    Battle --> Game : resolved
-    Game --> [*] : reach border (VICTORY) or HP = 0 (DEFEAT)
-```
-
 ---
 
 ## Gameplay Rules
