@@ -147,62 +147,30 @@ stateDiagram-v2
 
 ---
 
-## Current Status
+## Sprites
 
-### What works
-- Console mode: full game loop (hero creation, movement, battles, artifact pickup, persistence)
-- GUI mode: hero creation, map rendering with hero + villain icons, arrow-key movement, battle animation (fight icon -> result icon), hero stats bar
+All icons are 24 × 24 px pixel art, displayed below at 2× (48 px) for sharpness.
 
-### Known limitations / in progress
+### Heroes
 
-| Area | Status |
-|---|---|
-| `askSelectHero` in GUI | not implemented yet (returns null) |
-| `showMessage` in GUI | no-op |
-| `showHeroDetails` post-setup | reuses heroName card (placeholder) |
-| Artifact pickup dialog | `JOptionPane` (modal, works but out of style) |
-| Fight dialog | `JOptionPane` (same) |
-| Hero persistence save on end | heroes list may be null if no load was done |
+| Warrior | Rogue | Wizard |
+|:---:|:---:|:---:|
+| <img src="src/main/resources/images/h_warrior.png" width="48" height="48"> | <img src="src/main/resources/images/h_rogue.png" width="48" height="48"> | <img src="src/main/resources/images/h_wizard.png" width="48" height="48"> |
 
-### Architecture concern: GUI event model
+### Villains
 
-The current GUI bridges Swing's event-driven model back to the controller's **synchronous loop** using `BlockingQueue` and `CountDownLatch`. The controller thread blocks on `queue.take()` waiting for user input; a button/key listener puts to the queue from the EDT.
+| Dragon | Dracula | Skeleton |
+|:---:|:---:|:---:|
+| <img src="src/main/resources/images/v_dragon.png" width="48" height="48"> | <img src="src/main/resources/images/v_dracula.png" width="48" height="48"> | <img src="src/main/resources/images/v_skeleton.png" width="48" height="48"> |
 
-This works for simple flows but breaks down when extending the design system — adding new screens, conditional transitions, or non-linear flows forces awkward latching logic and risks EDT deadlocks (e.g. calling `invokeAndWait` from code that is already on the EDT, or nested blocking calls).
+### Artifacts
 
-```mermaid
-sequenceDiagram
-    participant CT as Controller Thread
-    participant EDT as Swing EDT
-    CT->>EDT: SwingUtilities.invokeLater(draw map)
-    CT->>CT: heroDirectionInput.take() [BLOCKS]
-    EDT-->>CT: keyPressed → queue.put(direction)
-    CT->>CT: resumes, calls view.showBattleResult()
-    CT->>EDT: invokeAndWait(show fight icon) [BLOCKS EDT]
-    CT->>CT: Thread.sleep(1200) [still blocking EDT indirectly]
-```
+| Weapon | Armor | Helm |
+|:---:|:---:|:---:|
+| <img src="src/main/resources/images/a_weapon.png" width="48" height="48"> | <img src="src/main/resources/images/a_armor.png" width="48" height="48"> | <img src="src/main/resources/images/a_helm.png" width="48" height="48"> |
 
-**Planned refactor: event-driven MVC for GUI**
+### Battle
 
-The fix is to invert control for the GUI path — the controller should not own the loop when running in GUI mode. Instead:
-
-- `GUIView` fires events (or calls controller callbacks) when the user acts
-- The controller reacts, updates the model, and tells the view what to render next
-- No `BlockingQueue`, no `CountDownLatch`, no `invokeAndWait` in the view
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant GUIView
-    participant Controller
-    participant Model
-
-    User->>GUIView: presses arrow key
-    GUIView->>Controller: onMoveRequested(direction)
-    Controller->>Model: map.moveHero(direction)
-    Model-->>Controller: new state
-    Controller->>GUIView: renderMap(map, hero)
-    GUIView->>GUIView: updateGrid() on EDT
-```
-
-This makes adding screens, dialogs, and transitions straightforward without touching synchronization primitives.
+| Fight | Fight 2 | Lose |
+|:---:|:---:|:---:|
+| <img src="src/main/resources/images/fight_1.png" width="48" height="48"> | <img src="src/main/resources/images/fight_2.png" width="48" height="48"> | <img src="src/main/resources/images/lose.png" width="48" height="48"> |
