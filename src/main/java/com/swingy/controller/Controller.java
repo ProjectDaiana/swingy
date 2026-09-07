@@ -25,14 +25,15 @@ public class Controller {
     }
 
     public Hero setupHero() {
+        heroes = repository.loadHeroes();
         boolean isNewHero = view.askNewHero();
         Hero hero;
 
         if (isNewHero) {
             HeroCreationData data = view.createNewHero();
-            hero = new HeroBuilder(data.name(), data.heroType()).build(); // el Controller construye acá
+            hero = new HeroBuilder(data.name(), data.heroType()).build();
+            heroes.add(hero);
         } else {
-            heroes = repository.loadHeroes();
             hero = view.askSelectHero(heroes);
         }
 
@@ -66,6 +67,7 @@ public class Controller {
                 case WEST -> map.moveHero(GameMap.Direction.WEST);
                 case EAST -> map.moveHero(GameMap.Direction.EAST);
             }
+            view.drawMap(map, hero);
 
             // Check for battle
             if (map.hasVillain(map.getHeroX(), map.getHeroY())) {
@@ -73,7 +75,6 @@ public class Controller {
                 handleBattle(hero, map);
             }
 
-            view.drawMap(map, hero);
         }
     }
 
@@ -97,6 +98,7 @@ public class Controller {
         if (Battle.tryToRun()) {
             view.showMessage("You successfully fled from the battle.");
             map.moveHeroToPrevPosition();
+            view.drawMap(map, hero);
         } else {
             view.showMessage("Too slow. Now you MUST fight!");
             resolveBattle(hero, map);
