@@ -57,11 +57,15 @@ public class GUIView implements GameView {
     private final BlockingQueue<DirectionType> heroDirectionInput;
     private ImageIcon heroIcon;
     private ImageIcon villainIcon;
+    private ImageIcon fightIcon;
     private JLabel[][] gridCells;
     private JPanel mapGridPanel;
-    private boolean mapReady; // o el nombre que prefieras
+    private boolean mapReady;
+    private int lastDrawnHeroX = -1;
+    private int lastDrawnHeroY = -1;
     private CountDownLatch newHeroLatch;
     private boolean screensReady;
+    private GameMap currentMap;
 
     public GUIView() {
         frame = new JFrame();
@@ -300,12 +304,17 @@ public class GUIView implements GameView {
 
     @Override
     public boolean askFight() {
-        return false;
+        int response = JOptionPane.showConfirmDialog(frame, "Do you want to fight?", "Fight",
+                JOptionPane.YES_NO_OPTION);
+        return response == JOptionPane.YES_OPTION;
     }
 
     @Override
     public boolean askArtifactPickup(Artifact artifactDetails) {
-        return false;
+        setCellIcon(currentMap.getHeroX(), currentMap.getHeroY(), loadArtifactIcon(artifactDetails.getType()));
+        int response = JOptionPane.showConfirmDialog(frame, "Do you want to pick up this artifact?", "Artifact Pickup",
+                JOptionPane.YES_NO_OPTION);
+        return response == JOptionPane.YES_OPTION;
     }
 
     private JLabel drawHeroDetailsBar(Hero hero) {
@@ -324,6 +333,7 @@ public class GUIView implements GameView {
 
     @Override
     public void drawMap(GameMap map, Hero hero) {
+        this.currentMap = map;
         SwingUtilities.invokeLater(() -> {
             if (!mapReady) {
                 uiFactory.configureScreenPanel(gamePanel);
@@ -348,17 +358,13 @@ public class GUIView implements GameView {
     private void updateGrid(GameMap map, Hero hero) {
         int newX = map.getHeroX();
         int newY = map.getHeroY();
-        int prevX = map.getPrevHeroX();
-        int prevY = map.getPrevHeroY();
 
-        // Limpiar la celda anterior del héroe (si existe una posición previa válida)
-        if (prevX != -1 && prevY != -1 && (prevX != newX || prevY != newY)) {
-            JLabel prevCell = gridCells[prevY][prevX];
-            prevCell.setIcon(map.hasVillain(prevX, prevY) ? villainIcon : null);
+        if (lastDrawnHeroX != -1 && lastDrawnHeroY != -1 && (lastDrawnHeroX != newX || lastDrawnHeroY != newY)) {
+            gridCells[lastDrawnHeroY][lastDrawnHeroX].setIcon(map.hasVillain(lastDrawnHeroX, lastDrawnHeroY) ? villainIcon : null);
         }
-        // Pintar la celda nueva con el héroe
         gridCells[newY][newX].setIcon(heroIcon);
-        System.out.println("Moving hero to new position: (" + newX + ", " + newY + ")");
+        lastDrawnHeroX = newX;
+        lastDrawnHeroY = newY;
     }
 
     private JPanel initMap(GameMap map) {
@@ -381,7 +387,9 @@ public class GUIView implements GameView {
                 cell.setBorder(BorderFactory.createLineBorder(Color.WHITE));
 
                 if (x == map.getHeroX() && y == map.getHeroY()) {
-                    cell.setIcon(heroIcon); // or heroIcon scaled
+                    cell.setIcon(heroIcon);
+                    lastDrawnHeroX = x;
+                    lastDrawnHeroY = y;
                 } else if (map.hasVillain(x, y)) {
                     cell.setIcon(villainIcon); // or villainIcon scaled
                 }
@@ -432,6 +440,17 @@ public class GUIView implements GameView {
 
     @Override
     public void showBattleResult(BattleResult result) {
+        int x = currentMap.getHeroX();
+        int y = currentMap.getHeroY();
+
+        if (fightIcon == null)
+            fightIcon = loadFightIcon();
+        setCellIcon(x, y, fightIcon);
+        sleep(1200);
+
+        boolean won = result.getResult() == BattleResult.Result.WIN;
+        setCellIcon(x, y, loadResultIcon(won, result.getArtifact()));
+        sleep(800);
     }
 
     public void showVictory(String message) {
@@ -445,5 +464,46 @@ public class GUIView implements GameView {
     @Override
     public boolean askPlayAgain() {
         return false;
+    }
+
+    private ImageIcon loadResultIcon(boolean won, Artifact artifact) {
+        if (won) {
+            if (artifact != null) {
+                return uiFactory.scaleIcon(loadIcon(
+                        "/images/a_" + artifact.getType().toString().toLowerCase() + ".png"));
+            }
+            return uiFactory.scaleIcon(loadIcon("/images/win.png")); // ganaste sin artefacto
+        }
+        return uiFactory.scaleIcon(loadIcon("/images/lose.png"));
+    }
+
+    private void runOnEdt(Runnable action) {
+        try {
+            SwingUtilities.invokeAndWait(action);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void setCellIcon(int x, int y, ImageIcon icon) {
+        runOnEdt(() -> gridCells[y][x].setIcon(icon));
+    }
+
+    private ImageIcon loadFightIcon() {
+        return uiFactory.scaleIcon(loadIcon("/images/fight.png"));
+    }
+
+    private ImageIcon loadArtifactIcon(com.swingy.model.artifact.ArtifactType type) {
+        return uiFactory.scaleIcon(loadIcon("/images/a_" + type.toString().toLowerCase() + ".png"));
     }
 }
