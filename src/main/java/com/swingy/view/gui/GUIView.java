@@ -60,11 +60,19 @@ public class GUIView implements GameView {
     private ImageIcon fightIcon;
     private JLabel[][] gridCells;
     private JPanel mapGridPanel;
-    private boolean mapReady;
     private int lastDrawnHeroX = -1;
     private int lastDrawnHeroY = -1;
     private CountDownLatch newHeroLatch;
-    private boolean screensReady;
+
+    private enum GameState {
+        START_SCREEN,
+        HERO_SELECTION,
+        HERO_CREATION,
+        GAMEPLAY,
+        FIGHTING
+    }
+
+    private GameState currentState = GameState.START_SCREEN;
     private GameMap currentMap;
 
     public GUIView() {
@@ -79,7 +87,6 @@ public class GUIView implements GameView {
         battlePanel = new JPanel();
         /// remember to make this same as for heroIcon, so that the villain icon is and
         /// add an exception handling in case the resource is not found
-        mapReady = false;
 
         cardPanel.add(startPanel, "start");
         cardPanel.add(heroPanel, "hero");
@@ -92,7 +99,7 @@ public class GUIView implements GameView {
         heroNameInput = new LinkedBlockingQueue<String>();
         heroDirectionInput = new LinkedBlockingQueue<DirectionType>();
         uiFactory = new UIFactory();
-        screensReady = false;
+        currentState = GameState.START_SCREEN;
 
         frame.setContentPane(cardPanel);
         frame.setSize(800, 600);
@@ -121,8 +128,8 @@ public class GUIView implements GameView {
 
     public void startGame() {
         buildStartScreen();
+        currentState = GameState.HERO_SELECTION;
         buildHeroChoiceScreen();
-        screensReady = true;
         cardLayout.show(cardPanel, "start");
     }
 
@@ -227,7 +234,7 @@ public class GUIView implements GameView {
 
     @Override
     public boolean askNewHero() {
-        if (!screensReady) {
+        if (currentState == GameState.START_SCREEN) {
             startGame();
         } else {
             cardLayout.show(cardPanel, "start");
@@ -248,7 +255,7 @@ public class GUIView implements GameView {
 
     @Override
     public HeroCreationData createNewHero() {
-        if (!screensReady) {
+        if (currentState != GameState.HERO_CREATION) {
             startGame();
         }
 
@@ -335,7 +342,7 @@ public class GUIView implements GameView {
     public void drawMap(GameMap map, Hero hero) {
         this.currentMap = map;
         SwingUtilities.invokeLater(() -> {
-            if (!mapReady) {
+            if (currentState != GameState.GAMEPLAY) {
                 uiFactory.configureScreenPanel(gamePanel);
                 gamePanel.removeAll();
                 gamePanel.setLayout(new BorderLayout(10, 10));
@@ -343,7 +350,7 @@ public class GUIView implements GameView {
                 mapGridPanel = initMap(map);
                 gamePanel.add(heroDetailsBar, BorderLayout.NORTH);
                 gamePanel.add(mapGridPanel, BorderLayout.CENTER);
-                mapReady = true;
+                currentState = GameState.GAMEPLAY;
             } else {
                 System.out.println("Updating map for hero position: (" + map.getHeroX() + ", " + map.getHeroY() + ")");
                 updateGrid(map, hero);
@@ -360,7 +367,8 @@ public class GUIView implements GameView {
         int newY = map.getHeroY();
 
         if (lastDrawnHeroX != -1 && lastDrawnHeroY != -1 && (lastDrawnHeroX != newX || lastDrawnHeroY != newY)) {
-            gridCells[lastDrawnHeroY][lastDrawnHeroX].setIcon(map.hasVillain(lastDrawnHeroX, lastDrawnHeroY) ? villainIcon : null);
+            gridCells[lastDrawnHeroY][lastDrawnHeroX]
+                    .setIcon(map.hasVillain(lastDrawnHeroX, lastDrawnHeroY) ? villainIcon : null);
         }
         gridCells[newY][newX].setIcon(heroIcon);
         lastDrawnHeroX = newX;
@@ -440,14 +448,11 @@ public class GUIView implements GameView {
 
     @Override
     public void showBattleResult(BattleResult result) {
+        // Stop the timer to prevent further input during battle result display
         int x = currentMap.getHeroX();
         int y = currentMap.getHeroY();
-
-        if (fightIcon == null)
-            fightIcon = loadFightIcon();
-        setCellIcon(x, y, fightIcon);
+        fightAnimation(x, y); // Load the fight icon if not already loaded
         sleep(1200);
-
         boolean won = result.getResult() == BattleResult.Result.WIN;
         setCellIcon(x, y, loadResultIcon(won, result.getArtifact()));
         sleep(800);
@@ -472,7 +477,7 @@ public class GUIView implements GameView {
                 return uiFactory.scaleIcon(loadIcon(
                         "/images/a_" + artifact.getType().toString().toLowerCase() + ".png"));
             }
-            return uiFactory.scaleIcon(loadIcon("/images/win.png")); // ganaste sin artefacto
+            return heroIcon; // ganaste sin artefacto
         }
         return uiFactory.scaleIcon(loadIcon("/images/lose.png"));
     }
@@ -497,10 +502,17 @@ public class GUIView implements GameView {
 
     private void setCellIcon(int x, int y, ImageIcon icon) {
         runOnEdt(() -> gridCells[y][x].setIcon(icon));
+        gridCells[y][x].setIcon(icon);
     }
 
-    private ImageIcon loadFightIcon() {
-        return uiFactory.scaleIcon(loadIcon("/images/fight.png"));
+    private void fightAnimation(int x, int y) {
+        ImageIcon icon1 = uiFactory.scaleIcon(loadIcon("/images/fight_1.png"));
+        ImageIcon icon2 = uiFactory.scaleIcon(loadIcon("/images/fight_2.png"));
+        boolean showFirst = true;
+        Timer timer = new Timer(300, e -> {
+            setCellIcon(x, y, showFirst ? icon1 : icon2);
+        });
+        timer.start();
     }
 
     private ImageIcon loadArtifactIcon(com.swingy.model.artifact.ArtifactType type) {
