@@ -51,10 +51,10 @@ public class GameMap {
         prevHeroX = heroX;
         prevHeroY = heroY;
         switch (dir) {
-            case NORTH -> heroY--;
-            case SOUTH -> heroY++;
-            case WEST -> heroX--;
-            case EAST -> heroX++;
+            case NORTH -> { if (heroY > 0) heroY--; }
+            case SOUTH -> { if (heroY < size - 1) heroY++; }
+            case WEST  -> { if (heroX > 0) heroX--; }
+            case EAST  -> { if (heroX < size - 1) heroX++; }
         }
     }
 
