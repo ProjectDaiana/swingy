@@ -41,8 +41,9 @@ public class GUIView implements GameView {
 
     private List<HeroStats> loadedHeroes;
     private ImageIcon heroIcon;
-    private ImageIcon villainIcon;
+    private ImageIcon[] villainIcons;
     private JLabel[][] gridCells;
+    private ImageIcon[][] baseIcons;
     private int lastDrawnHeroX = -1;
     private int lastDrawnHeroY = -1;
     private Timer fightTimer;
@@ -86,9 +87,13 @@ public class GUIView implements GameView {
         return loadIcon(path);
     }
 
-    public ImageIcon loadVillainIcon() {
-        String path = "/images/v_" + "dragon" + ".png";
-        return loadIcon(path);
+    private ImageIcon[] loadVillainIcons() {
+        String[] names = { "dragon", "dracula", "skeleton" };
+        ImageIcon[] icons = new ImageIcon[names.length];
+        for (int i = 0; i < names.length; i++) {
+            icons[i] = uiFactory.scaleIcon(loadIcon("/images/v_" + names[i] + ".png"));
+        }
+        return icons;
     }
 
     private GridBagConstraints centeredConstraints(int row, int bottomInset) {
@@ -302,14 +307,7 @@ public class GUIView implements GameView {
         int newY = map.heroY();
 
         if (lastDrawnHeroX != -1 && lastDrawnHeroY != -1 && (lastDrawnHeroX != newX || lastDrawnHeroY != newY)) {
-            boolean wasVillain = false;
-            for (int[] pos : map.villainPositions()) {
-                if (pos[0] == lastDrawnHeroX && pos[1] == lastDrawnHeroY) {
-                    wasVillain = true;
-                    break;
-                }
-            }
-            gridCells[lastDrawnHeroY][lastDrawnHeroX].setIcon(wasVillain ? villainIcon : null);
+            gridCells[lastDrawnHeroY][lastDrawnHeroX].setIcon(baseIcons[lastDrawnHeroY][lastDrawnHeroX]);
         }
         gridCells[newY][newX].setIcon(heroIcon);
         lastDrawnHeroX = newX;
@@ -318,14 +316,15 @@ public class GUIView implements GameView {
 
     private JPanel initMap(MapState map) {
         int size = map.size();
-        GridLayout grid = new GridLayout(size, size);
-        JPanel mapPanel = new JPanel(grid);
+        JPanel mapPanel = new JPanel(new GridLayout(size, size));
 
         gridCells = new JLabel[size][size];
+        baseIcons = new ImageIcon[size][size];
         mapPanel.setBackground(ColorPalette.DARK_GRAY);
         mapPanel.setOpaque(true);
         heroIcon = uiFactory.scaleIcon(heroIcon);
-        villainIcon = uiFactory.scaleIcon(loadVillainIcon());
+        villainIcons = loadVillainIcons();
+
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
                 JLabel cell = new JLabel();
@@ -338,15 +337,13 @@ public class GUIView implements GameView {
                     lastDrawnHeroX = x;
                     lastDrawnHeroY = y;
                 } else {
-                    boolean hasVillain = false;
                     for (int[] pos : map.villainPositions()) {
                         if (pos[0] == x && pos[1] == y) {
-                            hasVillain = true;
+                            ImageIcon icon = villainIcons[(int) (Math.random() * villainIcons.length)];
+                            cell.setIcon(icon);
+                            baseIcons[y][x] = icon;
                             break;
                         }
-                    }
-                    if (hasVillain) {
-                        cell.setIcon(villainIcon);
                     }
                 }
 
@@ -398,6 +395,7 @@ public class GUIView implements GameView {
 
     @Override
     public void showMessage(String message) {
+        System.out.println("[MSG] " + message);
     }
 
     @Override
@@ -410,16 +408,25 @@ public class GUIView implements GameView {
         int x = current.heroX();
         int y = current.heroY();
         boolean won = result.getResult() == BattleResult.Result.WIN;
+        if (won) {
+            baseIcons[y][x] = null;
+            System.out.println("[BATTLE] WIN at (" + x + ", " + y + ")" +
+                    (result.getArtifact() != null ? " | artifact: " + result.getArtifact().getType() : ""));
+        } else {
+            System.out.println("[BATTLE] LOSE at (" + x + ", " + y + ")");
+        }
         setCellIcon(x, y, loadResultIcon(won, result.getArtifact()));
     }
 
     @Override
     public void showVictory(String message) {
+        System.out.println("[VICTORY] " + message);
         JOptionPane.showMessageDialog(null, message);
     }
 
     @Override
     public void showGameOver(String message) {
+        System.out.println("[GAME OVER] " + message);
         JOptionPane.showMessageDialog(null, message);
     }
 
