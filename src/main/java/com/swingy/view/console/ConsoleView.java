@@ -1,13 +1,14 @@
 package com.swingy.view.console;
 
-import com.swingy.model.hero.Hero;
+import com.swingy.controller.Controller;
 import com.swingy.model.hero.HeroType;
 import com.swingy.view.GameView;
+import com.swingy.view.HeroStats;
+import com.swingy.view.MapState;
 import com.swingy.model.DirectionType;
 import com.swingy.model.battle.BattleResult;
 import com.swingy.model.artifact.Artifact;
-import com.swingy.model.map.GameMap;
-import com.swingy.view.HeroCreationData;
+// import com.swingy.view.HeroCreationData;
 import java.util.Scanner;
 import java.util.List;
 
@@ -18,27 +19,51 @@ public class ConsoleView implements GameView {
         this.scanner = new Scanner(System.in);
     }
 
-    // @Override
-    public void showHeroDetails(Hero hero) {
+    @Override
+    public void run(Controller controller) {
+        List<HeroStats> heroes = controller.loadHeroes();
+        if (askNewHero()) {
+            String name = askHeroName();
+            HeroType heroType = askHeroType();
+            controller.createHero(name, heroType);
+        } else {
+            int selectedHeroIndex = askSelectHero(heroes);
+            controller.selectHero(selectedHeroIndex);
+        }
+        showHeroDetails(controller.getHeroStats());
+        drawMap(controller.getMapState());
+        while (true) {
+            if (controller.isHeroDefeated() || controller.isAtBorder()) {
+                controller.endGame();
+                break;
+            }
+            DirectionType direction = askDirection();
+            controller.onMove(direction);
+            drawMap(controller.getMapState());
+        }
+    }
+
+    @Override
+    public void showHeroDetails(HeroStats stats) {
         System.out.println("Hero Details:");
-        System.out.println("Name: " + hero.getName());
-        System.out.println("Class: " + hero.getHeroType().toString());
-        System.out.println("Level: " + hero.getLevel());
-        System.out.println("XP: " + hero.getXp());
-        System.out.println("Attack: " + hero.getAttack());
-        System.out.println("Defense: " + hero.getDefense());
-        System.out.println("Hit Points: " + hero.getHitPoints());
+        System.out.println("Name: " + stats.name());
+        System.out.println("Type: " + stats.type());
+        System.out.println("Level: " + stats.level());
+        System.out.println("XP: " + stats.xp());
+        System.out.println("Attack: " + stats.attack());
+        System.out.println("Defense: " + stats.defense());
+        System.out.println("Hit Points: " + stats.hitPoints());
     }
 
     public void showBattleResult(BattleResult result) {
         System.out.println("Battle Result: " + result.getResult().toString());
     }
 
-    public HeroCreationData createNewHero() {
-        String name = askHeroName();
-        HeroType heroType = askHeroType();
-        return new HeroCreationData(name, heroType);
-    }
+    // public HeroCreationData createNewHero() {
+    //     String name = askHeroName();
+    //     HeroType heroType = askHeroType();
+    //     return new HeroCreationData(name, heroType);
+    // }
 
     public boolean askNewHero() {
         System.out.println("Do you want to create a new hero or load an existing one? (1: Create, 2: Load)");
@@ -76,14 +101,23 @@ public class ConsoleView implements GameView {
         }
     }
 
-    public Hero askSelectHero(List<Hero> heroes) {
+    public int askSelectHero(List<HeroStats> heroes) {
         System.out.println("Select a hero from the list:");
         for (int i = 0; i < heroes.size(); i++) {
-            Hero hero = heroes.get(i);
-            System.out.println((i + 1) + ": " + hero.getName() + " (Level: " + hero.getLevel() + ")");
+            HeroStats stats = heroes.get(i);
+            System.out.println((i + 1) + ": " + stats.name() + " (Level: " + stats.level() + ")");
         }
-        int choice = Integer.parseInt(scanner.nextLine());
-        return heroes.get(choice - 1);
+        String input = scanner.nextLine();
+        if (!input.matches("\\d+")) {
+            System.out.println("Only digits are allowed.");
+            return askSelectHero(heroes);
+        }
+        int choice = Integer.parseInt(input);
+        if (choice < 1 || choice > heroes.size()) {
+            System.out.println("Choose between 1 and " + heroes.size() + ".");
+            return askSelectHero(heroes);
+        }
+        return choice - 1;
     }
 
     public DirectionType askDirection() {
@@ -126,20 +160,28 @@ public class ConsoleView implements GameView {
         return "Y".equals(input);
     }
 
-    public void drawMap(GameMap map, Hero hero) {
-        int size = map.getSize();
-        for (int y = 0; y < size; y++) {
-            for (int x = 0; x < size; x++) {
-                if (x == map.getHeroX() && y == map.getHeroY()) {
-                    System.out.print("H "); // Hero position
-                } else if (map.hasVillain(x, y)) {
-                    System.out.print("V "); // Villain position
+    @Override
+    public void drawMap(MapState state) {
+        for (int y = 0; y < state.size(); y++) {
+            for (int x = 0; x < state.size(); x++) {
+                if (x == state.heroX() && y == state.heroY()) {
+                    System.out.print("H ");
+                } else if (isVillainAt(state, x, y)) {
+                    System.out.print("V ");
                 } else {
-                    System.out.print(". "); // Empty space
+                    System.out.print(". ");
                 }
             }
             System.out.println();
         }
+    }
+
+    private boolean isVillainAt(MapState state, int x, int y) {
+        for (int[] pos : state.villainPositions()) {
+            if (pos[0] == x && pos[1] == y)
+                return true;
+        }
+        return false;
     }
 
     public void showMessage(String message) {

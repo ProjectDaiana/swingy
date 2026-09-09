@@ -2,15 +2,18 @@ package com.swingy.controller;
 
 import com.swingy.model.hero.Hero;
 import com.swingy.model.hero.HeroBuilder;
+import com.swingy.model.hero.HeroType;
 import com.swingy.repository.HeroRepository;
 import com.swingy.model.villain.Villian;
 import com.swingy.view.GameView;
-import com.swingy.view.HeroCreationData;
 import com.swingy.model.artifact.Artifact;
 import com.swingy.model.battle.Battle;
 import com.swingy.model.battle.BattleResult;
 import com.swingy.model.map.GameMap;
 import com.swingy.model.GameResult;
+import com.swingy.model.DirectionType;
+import com.swingy.view.HeroStats;
+import com.swingy.view.MapState;
 import java.util.List;
 
 public class Controller {
@@ -18,96 +21,110 @@ public class Controller {
     private HeroRepository repository;
     private Villian villian;
     private List<Hero> heroes;
+    private Hero hero;
+    private GameMap map;
 
     public Controller(GameView view, HeroRepository repository) {
         this.view = view;
         this.repository = repository;
     }
 
-    public Hero setupHero() {
+    public List<HeroStats> loadHeroes() {
         heroes = repository.loadHeroes();
-        boolean isNewHero = view.askNewHero();
-        Hero hero;
+        List<HeroStats> heroesStats = new java.util.ArrayList<>();
+        for (Hero h : heroes) {
+            heroesStats.add(new HeroStats(h.getName(), h.getType().toString(), h.getLevel(), h.getXp(), h.getAttack(), h.getDefense(), h.getHitPoints()));
+        }
+        return heroesStats;
+    }
 
-        if (isNewHero) {
-            HeroCreationData data = view.createNewHero();
-            hero = new HeroBuilder(data.name(), data.heroType()).build();
-            heroes.add(hero);
+    public void createHero(String name, HeroType type) {
+        this.hero = new HeroBuilder(name, type).build();
+        heroes.add(this.hero);
+        this.map = new GameMap(this.hero.getLevel());
+    }
+
+    public void selectHero(int index) {
+        this.hero = heroes.get(index);
+        this.map = new GameMap(this.hero.getLevel());
+    }
+
+    // public void setupHero() {
+    //     heroes = repository.loadHeroes();
+    //     boolean isNewHero = view.askNewHero();
+
+    //     if (isNewHero) {
+    //         HeroCreationData data = view.createNewHero();
+    //         this.hero = new HeroBuilder(data.name(), data.heroType()).build();
+    //         heroes.add(this.hero);
+    //     } else {
+    //         List<HeroStats> heroStats = new java.util.ArrayList<>();
+    //         for (Hero h : heroes) {
+    //             heroStats.add(new HeroStats(h.getName(), h.getType().toString(), h.getLevel(), h.getXp(), h.getAttack(), h.getDefense(), h.getHitPoints()));
+    //         }
+    //         int index = view.askSelectHero(heroStats);
+    //         this.hero = heroes.get(index);
+    //     }
+
+    //     this.map = new GameMap(this.hero.getLevel());
+    // }
+
+    public boolean isHeroDefeated() {
+        return hero.isDefeated();
+    }
+
+    public boolean isAtBorder() {
+        return map.isAtBorder();
+    }
+
+    public void onFight(Hero hero, GameMap map) {
+        resolveBattle(hero, map);
+    }
+
+    public void onFlee(Hero hero, GameMap map) {
+        view.showMessage("You chose to flee from the battle.");
+        if (Battle.tryToRun()) {
+            view.showMessage("You successfully fled from the battle.");
+            map.moveHeroToPrevPosition();
         } else {
-            hero = view.askSelectHero(heroes);
-        }
-
-        view.showHeroDetails(hero);
-        return hero;
-    }
-
-    public void startGameLoop() {
-        Hero hero = setupHero();
-
-        // Setup the game map and draw it
-        GameMap map = new GameMap(hero.getLevel()); // Example size, adjust as needed
-        view.drawMap(map, hero);
-
-        // Main game loop
-        while (true) {
-            // Check for game over conditions
-            if (hero.isDefeated()) {
-                endGame(GameResult.DEFEAT);
-                break;
-            }
-            if (map.isAtBorder()) { // Example victory condition
-                endGame(GameResult.VICTORY);
-                break;
-            }
-
-            // Ask for direction and move hero
-            switch (view.askDirection()) {
-                case NORTH -> map.moveHero(GameMap.Direction.NORTH);
-                case SOUTH -> map.moveHero(GameMap.Direction.SOUTH);
-                case WEST -> map.moveHero(GameMap.Direction.WEST);
-                case EAST -> map.moveHero(GameMap.Direction.EAST);
-            }
-            view.drawMap(map, hero);
-
-            // Check for battle
-            if (map.hasVillain(map.getHeroX(), map.getHeroY())) {
-                villian = map.getVillainAt(map.getHeroX(), map.getHeroY());
-                handleBattle(hero, map);
-            }
-
+            view.showMessage("Too slow. Now you MUST fight!");
+            resolveBattle(hero, map);
         }
     }
 
-    public void endGame(GameResult result) {
+    public void onMove(DirectionType direction) {
+        switch (direction) {
+            case NORTH -> map.moveHero(GameMap.Direction.NORTH);
+            case SOUTH -> map.moveHero(GameMap.Direction.SOUTH);
+            case WEST -> map.moveHero(GameMap.Direction.WEST);
+            case EAST -> map.moveHero(GameMap.Direction.EAST);
+        }
+        if (map.hasVillain(map.getHeroX(), map.getHeroY())) {
+            villian = map.getVillainAt(map.getHeroX(), map.getHeroY());
+            handleBattle(false, hero, map);
+        }
+    }
+
+    public void endGame() {
         repository.saveHeroes(heroes);
+        GameResult result = hero.isDefeated() ? GameResult.DEFEAT : GameResult.VICTORY;
         switch (result) {
             case VICTORY -> view.showVictory("Congratulations! You have won the game!");
             case DEFEAT -> view.showGameOver("Game Over! Your hero has been defeated.");
         }
     }
 
-    public void handleBattle(Hero hero, GameMap map) {
+    public void handleBattle(boolean isFighting, Hero hero, GameMap map) {
         boolean fight = view.askFight();
 
         if (fight) {
-            resolveBattle(hero, map);
-            return;
-        }
-
-        view.showMessage("You chose to flee from the battle.");
-        if (Battle.tryToRun()) {
-            view.showMessage("You successfully fled from the battle.");
-            map.moveHeroToPrevPosition();
-            view.drawMap(map, hero);
+            onFight(hero, map);
         } else {
-            view.showMessage("Too slow. Now you MUST fight!");
-            resolveBattle(hero, map);
+            onFlee(hero, map);
         }
-
     }
 
-    public void handleArtifactPickup(Hero hero, Artifact artifact) {
-        boolean pickup = view.askArtifactPickup(artifact);
+    public void onArtifactPickup(boolean pickup, Hero hero, Artifact artifact) {
         if (pickup) {
             view.showMessage("You picked up the artifact!");
             hero.equipArtifact(artifact);
@@ -118,6 +135,10 @@ public class Controller {
         }
     }
 
+    public void onArtifactLeave(Hero hero, Artifact artifact) {
+        view.showMessage("You left the artifact behind.");
+    }
+
     private void applyBattleResult(Hero hero, BattleResult battleResult) {
         switch (battleResult.getResult()) {
             case WIN -> {
@@ -125,9 +146,8 @@ public class Controller {
                 hero.gainXp(battleResult.getXPGained());
                 Artifact artifact = battleResult.getArtifact();
                 if (artifact != null) {
-                    view.showMessage("The villain dropped an artifact: " + artifact.getType().toString()
-                            + " with value: " + artifact.getValue());
-                    handleArtifactPickup(hero, artifact);
+                    boolean pickup = view.askArtifactPickup(artifact);
+                    onArtifactPickup(pickup, hero, artifact);
                 }
             }
             case LOSES -> {
@@ -145,4 +165,14 @@ public class Controller {
         view.showBattleResult(battleResult);
         applyBattleResult(hero, battleResult);
     }
+
+    public MapState getMapState() {
+        return new MapState(map.getSize(), map.getHeroX(), map.getHeroY(), map.getVillainPositions());
+    }
+
+    public HeroStats getHeroStats() {
+        return new HeroStats(hero.getName(), hero.getType().toString(), hero.getLevel(), hero.getXp(),
+                hero.getAttack(), hero.getDefense(), hero.getHitPoints());
+    }
+
 }
