@@ -10,4 +10,5 @@ public final class ColorPalette {
     public static final Color DARK_GRAY = new Color(21, 21, 21);
     public static final Color LIGHT_GRAY = new Color(235, 235, 235);
     public static final Color WHITE = new Color(255, 255, 255);
+    public static final Color ACCENT = new Color(216, 210, 62);
 }
