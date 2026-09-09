@@ -33,9 +33,22 @@ public class Controller {
         heroes = repository.loadHeroes();
         List<HeroStats> heroesStats = new java.util.ArrayList<>();
         for (Hero h : heroes) {
-            heroesStats.add(new HeroStats(h.getName(), h.getType().toString(), h.getLevel(), h.getXp(), h.getAttack(), h.getDefense(), h.getHitPoints()));
+            heroesStats.add(toHeroStats(h));
         }
         return heroesStats;
+    }
+
+    private HeroStats toHeroStats(Hero h) {
+        com.swingy.model.artifact.Artifact weapon = h.getEquipped(com.swingy.model.artifact.ArtifactType.WEAPON);
+        com.swingy.model.artifact.Artifact armor  = h.getEquipped(com.swingy.model.artifact.ArtifactType.ARMOR);
+        com.swingy.model.artifact.Artifact helm   = h.getEquipped(com.swingy.model.artifact.ArtifactType.HELM);
+        return new HeroStats(
+            h.getName(), h.getType().toString(), h.getLevel(), h.getXp(),
+            h.getAttack(), h.getDefense(), h.getHitPoints(),
+            weapon != null ? "+" + weapon.getValue() : "none",
+            armor  != null ? "+" + armor.getValue()  : "none",
+            helm   != null ? "+" + helm.getValue()   : "none"
+        );
     }
 
     public void createHero(String name, HeroType type) {
@@ -48,7 +61,6 @@ public class Controller {
         this.hero = heroes.get(index);
         this.map = new GameMap(this.hero.getLevel());
     }
-
 
     public boolean isHeroDefeated() {
         return hero.isDefeated();
@@ -153,8 +165,7 @@ public class Controller {
     }
 
     public HeroStats getHeroStats() {
-        return new HeroStats(hero.getName(), hero.getType().toString(), hero.getLevel(), hero.getXp(),
-                hero.getAttack(), hero.getDefense(), hero.getHitPoints());
+        return toHeroStats(hero);
     }
 
 }
