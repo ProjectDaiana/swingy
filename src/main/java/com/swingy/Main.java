@@ -1,10 +1,7 @@
 package com.swingy;
 
-import com.swingy.model.map.GameMap;
-import com.swingy.model.villain.Villian;
 import com.swingy.repository.HeroRepository;
 import com.swingy.view.GameView;
-import com.swingy.model.hero.Hero;
 import com.swingy.view.console.ConsoleView;
 import com.swingy.controller.Controller;
 import com.swingy.repository.FileHeroRepository;
@@ -39,6 +36,6 @@ public class Main {
                   view = new GUIView(); // Implement this class for GUI
             }
             Controller controller = new Controller(view, repository); // test hero and map
-            controller.startGameLoop(); // Start a new game);
+            new Thread(() -> view.run(controller)).start(); // Start the game loop
       }
 }

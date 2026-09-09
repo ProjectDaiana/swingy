@@ -23,7 +23,7 @@ public class FileHeroRepository implements HeroRepository {
             String line = String.format(
                     "name=%s;class=%s;level=%d;xp=%d;attack=%d;defense=%d;hitPoints=%d",
                     hero.getName(),
-                    hero.getHeroType().name(),
+                    hero.getType().name(),
                     hero.getLevel(),
                     hero.getXp(),
                     hero.getAttack(),

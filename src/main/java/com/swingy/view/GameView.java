@@ -1,32 +1,30 @@
 package com.swingy.view;
 
 import java.util.List;
-
 import com.swingy.model.DirectionType;
 import com.swingy.model.artifact.Artifact;
 import com.swingy.model.battle.BattleResult;
-import com.swingy.model.hero.Hero;
-import com.swingy.model.map.GameMap;
-import com.swingy.view.HeroCreationData;
+import com.swingy.view.HeroStats;
+import com.swingy.view.MapState;
+import com.swingy.controller.Controller;
 
 // because GuiView might need to inherit from 2 diferent classes, we will use an
 // interface instead of a class
 public interface GameView {
-    boolean askNewHero();
+    void run(Controller controller);
 
-    HeroCreationData createNewHero();
 
-    Hero askSelectHero(List<Hero> heroes);
 
-    void showHeroDetails(Hero hero);
+    void showHeroDetails(HeroStats stats);
 
-    DirectionType askDirection();
 
     boolean askFight();
 
+    void onBattleStart();
+
     boolean askArtifactPickup(Artifact artifactDetails);
 
-    void drawMap(GameMap map, Hero hero);
+    void drawMap(MapState state);
 
     void showMessage(String message);
 
@@ -36,6 +34,5 @@ public interface GameView {
 
     void showVictory(String message);
 
-    boolean askPlayAgain();
 
 }

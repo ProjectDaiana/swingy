@@ -147,7 +147,7 @@ public class Hero {
         }
     }
 
-    public HeroType getHeroType() {
+    public HeroType getType() {
         return HeroType;
     }
 }

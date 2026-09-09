@@ -8,72 +8,46 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-
+import com.swingy.controller.Controller;
 import com.swingy.model.DirectionType;
 import com.swingy.model.artifact.Artifact;
 import com.swingy.model.battle.BattleResult;
-import com.swingy.model.hero.Hero;
 import com.swingy.model.hero.HeroType;
-import com.swingy.model.map.GameMap;
 import com.swingy.view.GameView;
-import com.swingy.view.HeroCreationData;
+import com.swingy.view.HeroStats;
+import com.swingy.view.MapState;
 
 import java.awt.CardLayout;
 import java.awt.GridBagConstraints;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.Insets;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.BlockingQueue;
 import java.awt.Color;
 
 public class GUIView implements GameView {
-
+    Controller controller;
     private final JFrame frame;
     private final JPanel cardPanel;
     private final CardLayout cardLayout;
-
     private final JPanel startPanel;
     private final JPanel heroPanel;
     private final JPanel heroNamePanel;
     private final JPanel gamePanel;
-    private final JPanel battlePanel;
     private final UIFactory uiFactory;
 
-    private final AtomicReference<Boolean> newHeroChoice;
-    private HeroType HeroTypeInput;
-
-    /// private final BlockingQueue<Boolean> newHeroChoice;
-    private final BlockingQueue<String> heroNameInput;
-    private final BlockingQueue<DirectionType> heroDirectionInput;
+    private List<HeroStats> loadedHeroes;
     private ImageIcon heroIcon;
     private ImageIcon villainIcon;
-    private ImageIcon fightIcon;
     private JLabel[][] gridCells;
-    private JPanel mapGridPanel;
     private int lastDrawnHeroX = -1;
     private int lastDrawnHeroY = -1;
-    private CountDownLatch newHeroLatch;
+    private Timer fightTimer;
 
-    private enum GameState {
-        START_SCREEN,
-        HERO_SELECTION,
-        HERO_CREATION,
-        GAMEPLAY,
-        FIGHTING
-    }
-
-    private GameState currentState = GameState.START_SCREEN;
-    private GameMap currentMap;
+    private boolean gameStarted = false;
 
     public GUIView() {
         frame = new JFrame();
@@ -84,22 +58,13 @@ public class GUIView implements GameView {
         heroPanel = new JPanel();
         heroNamePanel = new JPanel();
         gamePanel = new JPanel();
-        battlePanel = new JPanel();
-        /// remember to make this same as for heroIcon, so that the villain icon is and
-        /// add an exception handling in case the resource is not found
 
         cardPanel.add(startPanel, "start");
         cardPanel.add(heroPanel, "hero");
         cardPanel.add(heroNamePanel, "heroName");
         cardPanel.add(gamePanel, "game");
-        cardPanel.add(battlePanel, "battle");
 
-        newHeroChoice = new AtomicReference<>(null);
-        /// newHeroChoice = new BlockingQueue<LinkedBlockingQueue<Boolean>>();
-        heroNameInput = new LinkedBlockingQueue<String>();
-        heroDirectionInput = new LinkedBlockingQueue<DirectionType>();
         uiFactory = new UIFactory();
-        currentState = GameState.START_SCREEN;
 
         frame.setContentPane(cardPanel);
         frame.setSize(800, 600);
@@ -122,15 +87,8 @@ public class GUIView implements GameView {
     }
 
     public ImageIcon loadVillainIcon() {
-        String path = "/images/v_" + "dragon" + ".png"; // replace this to select randomly or level based
+        String path = "/images/v_" + "dragon" + ".png";
         return loadIcon(path);
-    }
-
-    public void startGame() {
-        buildStartScreen();
-        currentState = GameState.HERO_SELECTION;
-        buildHeroChoiceScreen();
-        cardLayout.show(cardPanel, "start");
     }
 
     private GridBagConstraints centeredConstraints(int row, int bottomInset) {
@@ -155,6 +113,7 @@ public class GUIView implements GameView {
         startPanel.add(startButton, centeredConstraints(1, 0));
         startPanel.revalidate();
         startPanel.repaint();
+        cardLayout.show(cardPanel, "start");
     }
 
     private void buildHeroChoiceScreen() {
@@ -164,196 +123,172 @@ public class GUIView implements GameView {
         JLabel heroTitle = new JLabel("Choose hero setup");
         uiFactory.applyTextStyle(heroTitle, Typography.Style.H1);
 
-        JButton createHeroButton = uiFactory.createButton("Create New Hero",
-                UIFactory.Style.PRIMARY);
-        createHeroButton.addActionListener(e -> {
-            newHeroChoice.set(Boolean.TRUE);
-            if (newHeroLatch != null) {
-                newHeroLatch.countDown();
-            }
-        });
+        JButton createHeroButton = uiFactory.createButton("Create New Hero", UIFactory.Style.PRIMARY);
+        createHeroButton.addActionListener(e -> buildHeroCreationScreen());
 
-        JButton loadHeroButton = uiFactory.createButton("Select Existing Hero",
-                UIFactory.Style.SECONDARY);
-        loadHeroButton.addActionListener(e -> {
-            newHeroChoice.set(Boolean.FALSE);
-            if (newHeroLatch != null) {
-                newHeroLatch.countDown();
-            }
-        });
+        JButton loadHeroButton = uiFactory.createButton("Select Existing Hero", UIFactory.Style.SECONDARY);
+        loadHeroButton.addActionListener(e -> buildHeroSelectionScreen());
 
         heroPanel.add(heroTitle, centeredConstraints(0, 20));
         heroPanel.add(createHeroButton, centeredConstraints(1, 12));
         heroPanel.add(loadHeroButton, centeredConstraints(2, 0));
         heroPanel.revalidate();
         heroPanel.repaint();
+        cardLayout.show(cardPanel, "heroChoice");
+
+    }
+
+    private void buildHeroSelectionScreen() {
+        heroNamePanel.removeAll();
+        uiFactory.configureScreenPanel(heroNamePanel);
+
+        JLabel title = new JLabel("Select a Hero");
+        uiFactory.applyTextStyle(title, Typography.Style.H1);
+        heroNamePanel.add(title, centeredConstraints(0, 20));
+
+        for (int i = 0; i < loadedHeroes.size(); i++) {
+            HeroStats h = loadedHeroes.get(i);
+            final int index = i;
+            JButton btn = uiFactory.createButton(h.name() + " (Level " + h.level() + ")", UIFactory.Style.SECONDARY);
+            btn.addActionListener(e -> {
+                controller.selectHero(index);
+                heroIcon = loadHeroIcon(HeroType.valueOf(loadedHeroes.get(index).type()));
+                showHeroDetails(controller.getHeroStats());
+                drawMap(controller.getMapState());
+            });
+            heroNamePanel.add(btn, centeredConstraints(1 + i, 8));
+        }
+
+        heroNamePanel.revalidate();
+        heroNamePanel.repaint();
     }
 
     private void buildHeroCreationScreen() {
         heroNamePanel.removeAll();
         uiFactory.configureScreenPanel(heroNamePanel);
 
-        // Create Title
         JLabel heroNameTitle = new JLabel("Name your hero");
         uiFactory.applyTextStyle(heroNameTitle, Typography.Style.H1);
 
-        // Create Input Field and Selector
         JTextField heroNameField = uiFactory.createTextField(18, UIFactory.Style.FIELD);
-        JLabel HeroTypeTitle = new JLabel("Choose hero class");
-        uiFactory.applyTextStyle(HeroTypeTitle, Typography.Style.H2);
+        JLabel heroTypeTitle = new JLabel("Choose hero class");
+        uiFactory.applyTextStyle(heroTypeTitle, Typography.Style.H2);
 
-        // Create HeroType Selector
-        JComboBox<HeroType> HeroTypeSelector = uiFactory.createSelector(HeroType.values(),
-                UIFactory.Style.SELECTOR);
+        JComboBox<HeroType> heroTypeSelector = uiFactory.createSelector(HeroType.values(), UIFactory.Style.SELECTOR);
 
-        // Create Submit Button
         JButton submitButton = uiFactory.createButton("Continue", UIFactory.Style.PRIMARY);
         submitButton.addActionListener(e -> {
             String name = heroNameField.getText().trim();
-            HeroType selectedClass = (HeroType) HeroTypeSelector.getSelectedItem(); /// I do not like this castnig
+            HeroType selectedClass = (HeroType) heroTypeSelector.getSelectedItem();
             if (!name.isEmpty() && selectedClass != null) {
-                try {
-                    heroNameInput.put(name);
-                    HeroTypeInput = selectedClass;
-                    heroIcon = loadHeroIcon(selectedClass);
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                }
+                controller.createHero(name, selectedClass);
+                heroIcon = loadHeroIcon(selectedClass);
+                showHeroDetails(controller.getHeroStats());
+                drawMap(controller.getMapState());
             }
-
         });
 
         heroNamePanel.add(heroNameTitle, centeredConstraints(0, 20));
         heroNamePanel.add(heroNameField, centeredConstraints(1, 12));
-        heroNamePanel.add(HeroTypeTitle, centeredConstraints(2, 12));
-        heroNamePanel.add(HeroTypeSelector, centeredConstraints(3, 12));
+        heroNamePanel.add(heroTypeTitle, centeredConstraints(2, 12));
+        heroNamePanel.add(heroTypeSelector, centeredConstraints(3, 12));
         heroNamePanel.add(submitButton, centeredConstraints(4, 0));
         heroNamePanel.revalidate();
         heroNamePanel.repaint();
-    }
-
-    @Override
-    public boolean askNewHero() {
-        if (currentState == GameState.START_SCREEN) {
-            startGame();
-        } else {
-            cardLayout.show(cardPanel, "start");
-        }
-
-        newHeroChoice.set(null);
-        newHeroLatch = new CountDownLatch(1);
-
-        try {
-            newHeroLatch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return true;
-        }
-
-        return Boolean.TRUE.equals(newHeroChoice.get());
-    }
-
-    @Override
-    public HeroCreationData createNewHero() {
-        if (currentState != GameState.HERO_CREATION) {
-            startGame();
-        }
-
-        buildHeroCreationScreen();
         cardLayout.show(cardPanel, "heroName");
-        String heroName = null;
-        try {
-            heroName = heroNameInput.take();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return null;
-        }
-
-        return new HeroCreationData(heroName, HeroTypeInput);
     }
 
     @Override
-    public Hero askSelectHero(List<Hero> heroes) {
-        return null;
-    }
-
-    @Override
-    public void showHeroDetails(Hero hero) {
+    public void showHeroDetails(HeroStats stats) {
         heroNamePanel.removeAll();
         uiFactory.configureScreenPanel(heroNamePanel);
         JLabel heroDetails = new JLabel("<html>Hero Details:<br/>" +
-                "Name: " + hero.getName() + "<br/>" +
-                "Class: " + hero.getHeroType().toString() + "<br/>" +
-                "Level: " + hero.getLevel() + "<br/>" +
-                "XP: " + hero.getXp() + "<br/>" +
-                "Attack: " + hero.getAttack() + "<br/>" +
-                "Defense: " + hero.getDefense() + "<br/>" +
-                "Hit Points: " + hero.getHitPoints() + "</html>");
+                "Name: " + stats.name() + "<br/>" +
+                "Class: " + stats.type() + "<br/>" +
+                "Level: " + stats.level() + "<br/>" +
+                "XP: " + stats.xp() + "<br/>" +
+                "Attack: " + stats.attack() + "<br/>" +
+                "Defense: " + stats.defense() + "<br/>" +
+                "Hit Points: " + stats.hitPoints() + "</html>");
         uiFactory.applyTitleStyle(heroDetails, 18f);
 
         heroNamePanel.add(heroDetails, centeredConstraints(0, 20));
         cardLayout.show(cardPanel, "heroName");
-        // JOptionPane.showMessageDialog(frame, heroDetails, "Hero Details",
-        // JOptionPane.INFORMATION_MESSAGE);
     }
 
     @Override
-    public DirectionType askDirection() {
-        DirectionType direction = null;
-        try {
-            direction = heroDirectionInput.take(); // bloquea hasta que el usuario clickea W/A/S/D
-            System.out.println("Direction received: " + direction);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        return direction;
+    public void onBattleStart() {
+        MapState current = controller.getMapState();
+        System.out.println("[BATTLE] Battle started at (" + current.heroX() + ", " + current.heroY() + ")");
+        updateGrid(current);
+        fightAnimation(current.heroX(), current.heroY());
     }
 
     @Override
     public boolean askFight() {
+        System.out.println("[BATTLE] Asking player: fight or flee?");
         int response = JOptionPane.showConfirmDialog(frame, "Do you want to fight?", "Fight",
                 JOptionPane.YES_NO_OPTION);
-        return response == JOptionPane.YES_OPTION;
+        boolean fight = response == JOptionPane.YES_OPTION;
+        System.out.println("[BATTLE] Player chose: " + (fight ? "FIGHT" : "FLEE"));
+        return fight;
     }
 
     @Override
     public boolean askArtifactPickup(Artifact artifactDetails) {
-        setCellIcon(currentMap.getHeroX(), currentMap.getHeroY(), loadArtifactIcon(artifactDetails.getType()));
+        System.out.println(
+                "[ARTIFACT] Dropped: " + artifactDetails.getType() + " (value: " + artifactDetails.getValue() + ")");
+        MapState current = controller.getMapState();
+        setCellIcon(current.heroX(), current.heroY(), loadArtifactIcon(artifactDetails.getType()));
         int response = JOptionPane.showConfirmDialog(frame, "Do you want to pick up this artifact?", "Artifact Pickup",
                 JOptionPane.YES_NO_OPTION);
-        return response == JOptionPane.YES_OPTION;
+        boolean pickup = response == JOptionPane.YES_OPTION;
+        System.out.println("[ARTIFACT] Player chose: " + (pickup ? "PICK UP" : "LEAVE"));
+        return pickup;
     }
 
-    private JLabel drawHeroDetailsBar(Hero hero) {
+    private JLabel drawHeroDetailsBar(HeroStats hero) {
         JLabel heroDetails = new JLabel("<html>Hero Details:<br/>" +
-                "Name: " + hero.getName() + "<br/>" +
-                "Class: " + hero.getHeroType().toString() + "<br/>" +
-                "Level: " + hero.getLevel() + "<br/>" +
-                "XP: " + hero.getXp() + "<br/>" +
-                "Attack: " + hero.getAttack() + "<br/>" +
-                "Defense: " + hero.getDefense() + "<br/>" +
-                "Hit Points: " + hero.getHitPoints() + "</html>");
+                "Name: " + hero.name() + "<br/>" +
+                "Class: " + hero.type() + "<br/>" +
+                "Level: " + hero.level() + "<br/>" +
+                "XP: " + hero.xp() + "<br/>" +
+                "Attack: " + hero.attack() + "<br/>" +
+                "Defense: " + hero.defense() + "<br/>" +
+                "Hit Points: " + hero.hitPoints() + "</html>");
         uiFactory.applyTextStyle(heroDetails, Typography.Style.BODY);
-        gamePanel.add(heroDetails, BorderLayout.NORTH);
         return heroDetails;
     }
 
     @Override
-    public void drawMap(GameMap map, Hero hero) {
-        this.currentMap = map;
+    public void run(Controller controller) {
+        this.controller = controller;
+        loadedHeroes = controller.loadHeroes();
         SwingUtilities.invokeLater(() -> {
-            if (currentState != GameState.GAMEPLAY) {
+            buildStartScreen();
+            buildHeroChoiceScreen();
+        });
+
+    }
+
+    @Override
+    public void drawMap(MapState state) {
+        SwingUtilities.invokeLater(() -> {
+            if (!gameStarted) {
                 uiFactory.configureScreenPanel(gamePanel);
                 gamePanel.removeAll();
                 gamePanel.setLayout(new BorderLayout(10, 10));
-                JLabel heroDetailsBar = drawHeroDetailsBar(hero);
-                mapGridPanel = initMap(map);
+                JLabel heroDetailsBar = drawHeroDetailsBar(controller.getHeroStats());
                 gamePanel.add(heroDetailsBar, BorderLayout.NORTH);
-                gamePanel.add(mapGridPanel, BorderLayout.CENTER);
-                currentState = GameState.GAMEPLAY;
+                gamePanel.add(initMap(state), BorderLayout.CENTER);
+                gameStarted = true;
             } else {
-                System.out.println("Updating map for hero position: (" + map.getHeroX() + ", " + map.getHeroY() + ")");
-                updateGrid(map, hero);
+                if (fightTimer != null) {
+                    fightTimer.stop();
+                    fightTimer = null;
+                }
+                System.out.println("Updating map for hero position: (" + state.heroX() + ", " + state.heroY() + ")");
+                updateGrid(state);
             }
             gamePanel.revalidate();
             gamePanel.repaint();
@@ -362,44 +297,57 @@ public class GUIView implements GameView {
         });
     }
 
-    private void updateGrid(GameMap map, Hero hero) {
-        int newX = map.getHeroX();
-        int newY = map.getHeroY();
+    private void updateGrid(MapState map) {
+        int newX = map.heroX();
+        int newY = map.heroY();
 
         if (lastDrawnHeroX != -1 && lastDrawnHeroY != -1 && (lastDrawnHeroX != newX || lastDrawnHeroY != newY)) {
-            gridCells[lastDrawnHeroY][lastDrawnHeroX]
-                    .setIcon(map.hasVillain(lastDrawnHeroX, lastDrawnHeroY) ? villainIcon : null);
+            boolean wasVillain = false;
+            for (int[] pos : map.villainPositions()) {
+                if (pos[0] == lastDrawnHeroX && pos[1] == lastDrawnHeroY) {
+                    wasVillain = true;
+                    break;
+                }
+            }
+            gridCells[lastDrawnHeroY][lastDrawnHeroX].setIcon(wasVillain ? villainIcon : null);
         }
         gridCells[newY][newX].setIcon(heroIcon);
         lastDrawnHeroX = newX;
         lastDrawnHeroY = newY;
     }
 
-    private JPanel initMap(GameMap map) {
-        int size = map.getSize();
+    private JPanel initMap(MapState map) {
+        int size = map.size();
         GridLayout grid = new GridLayout(size, size);
         JPanel mapPanel = new JPanel(grid);
 
         gridCells = new JLabel[size][size];
         mapPanel.setBackground(ColorPalette.DARK_GRAY);
-        mapPanel.setOpaque(true); // Asegura que el fondo sea visible
-        heroIcon = uiFactory.scaleIcon(heroIcon); // Escala el icono del héroe
-        villainIcon = uiFactory.scaleIcon(loadVillainIcon()); // Escala el icono
+        mapPanel.setOpaque(true);
+        heroIcon = uiFactory.scaleIcon(heroIcon);
+        villainIcon = uiFactory.scaleIcon(loadVillainIcon());
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
                 JLabel cell = new JLabel();
                 cell.setHorizontalAlignment(JLabel.CENTER);
                 cell.setVerticalAlignment(JLabel.CENTER);
+                cell.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
 
-                // Make the cell visible
-                cell.setBorder(BorderFactory.createLineBorder(Color.WHITE));
-
-                if (x == map.getHeroX() && y == map.getHeroY()) {
+                if (x == map.heroX() && y == map.heroY()) {
                     cell.setIcon(heroIcon);
                     lastDrawnHeroX = x;
                     lastDrawnHeroY = y;
-                } else if (map.hasVillain(x, y)) {
-                    cell.setIcon(villainIcon); // or villainIcon scaled
+                } else {
+                    boolean hasVillain = false;
+                    for (int[] pos : map.villainPositions()) {
+                        if (pos[0] == x && pos[1] == y) {
+                            hasVillain = true;
+                            break;
+                        }
+                    }
+                    if (hasVillain) {
+                        cell.setIcon(villainIcon);
+                    }
                 }
 
                 gridCells[y][x] = cell;
@@ -415,58 +363,66 @@ public class GUIView implements GameView {
         frame.addKeyListener(new java.awt.event.KeyAdapter() {
             @Override
             public void keyPressed(java.awt.event.KeyEvent e) {
+                if (!gameStarted)
+                    return;
+                DirectionType direction = null;
                 switch (e.getKeyCode()) {
                     case java.awt.event.KeyEvent.VK_UP:
-                        submitDirection(DirectionType.NORTH);
+                        direction = DirectionType.NORTH;
                         break;
                     case java.awt.event.KeyEvent.VK_DOWN:
-                        submitDirection(DirectionType.SOUTH);
+                        direction = DirectionType.SOUTH;
                         break;
                     case java.awt.event.KeyEvent.VK_LEFT:
-                        submitDirection(DirectionType.WEST);
+                        direction = DirectionType.WEST;
                         break;
                     case java.awt.event.KeyEvent.VK_RIGHT:
-                        submitDirection(DirectionType.EAST);
+                        direction = DirectionType.EAST;
                         break;
+                }
+                if (direction != null) {
+                    controller.onMove(direction);
+                    if (controller.isAtBorder()) {
+                        showVictory("You reached the border! You win!");
+                        controller.endGame();
+                    } else if (controller.isHeroDefeated()) {
+                        showGameOver("Your hero was defeated. Game over.");
+                        controller.endGame();
+                    } else {
+                        drawMap(controller.getMapState());
+                    }
                 }
             }
         });
     }
 
-    private void submitDirection(DirectionType direction) {
-        try {
-            heroDirectionInput.put(direction);
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
     @Override
     public void showMessage(String message) {
-        // Implementation for showing message in GUI
     }
 
     @Override
     public void showBattleResult(BattleResult result) {
-        // Stop the timer to prevent further input during battle result display
-        int x = currentMap.getHeroX();
-        int y = currentMap.getHeroY();
-        fightAnimation(x, y); // Load the fight icon if not already loaded
-        sleep(1200);
+        if (fightTimer != null) {
+            fightTimer.stop();
+            fightTimer = null;
+        }
+        MapState current = controller.getMapState();
+        int x = current.heroX();
+        int y = current.heroY();
         boolean won = result.getResult() == BattleResult.Result.WIN;
         setCellIcon(x, y, loadResultIcon(won, result.getArtifact()));
-        sleep(800);
     }
 
+    @Override
     public void showVictory(String message) {
         JOptionPane.showMessageDialog(null, message);
     }
 
+    @Override
     public void showGameOver(String message) {
         JOptionPane.showMessageDialog(null, message);
     }
 
-    @Override
     public boolean askPlayAgain() {
         return false;
     }
@@ -477,42 +433,29 @@ public class GUIView implements GameView {
                 return uiFactory.scaleIcon(loadIcon(
                         "/images/a_" + artifact.getType().toString().toLowerCase() + ".png"));
             }
-            return heroIcon; // ganaste sin artefacto
+            return heroIcon;
         }
         return uiFactory.scaleIcon(loadIcon("/images/lose.png"));
     }
 
-    private void runOnEdt(Runnable action) {
-        try {
-            SwingUtilities.invokeAndWait(action);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } catch (java.lang.reflect.InvocationTargetException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void sleep(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
     private void setCellIcon(int x, int y, ImageIcon icon) {
-        runOnEdt(() -> gridCells[y][x].setIcon(icon));
         gridCells[y][x].setIcon(icon);
     }
 
     private void fightAnimation(int x, int y) {
+        if (fightTimer != null) {
+            fightTimer.stop();
+        }
         ImageIcon icon1 = uiFactory.scaleIcon(loadIcon("/images/fight_1.png"));
         ImageIcon icon2 = uiFactory.scaleIcon(loadIcon("/images/fight_2.png"));
-        boolean showFirst = true;
-        Timer timer = new Timer(300, e -> {
-            setCellIcon(x, y, showFirst ? icon1 : icon2);
+        boolean[] showFirst = { true };
+        fightTimer = new Timer(300, e -> {
+            setCellIcon(x, y, showFirst[0] ? icon1 : icon2);
+            showFirst[0] = !showFirst[0];
+            System.out.println("ANIMATION RUNNING at position: (" + x + ", " + y + ")");
         });
-        timer.start();
+        System.out.println("Starting fight animation at position: (" + x + ", " + y + ")");
+        fightTimer.start();
     }
 
     private ImageIcon loadArtifactIcon(com.swingy.model.artifact.ArtifactType type) {

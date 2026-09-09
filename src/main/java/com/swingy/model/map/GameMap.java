@@ -1,6 +1,8 @@
 package com.swingy.model.map;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -95,6 +97,15 @@ public class GameMap {
 
     public boolean hasVillain(int x, int y) {
         return getVillainAt(x, y) != null;
+    }
+
+    public List<int[]> getVillainPositions() { //tal vez simplificar esto y solo devolver un List<int[]> con las posiciones de los villanos y usar el map.getVillainAt(x, y) en el controller para obtener el villano en esa posición
+        List<int[]> positions = new ArrayList<>();
+        for (String key : villains.keySet()) {
+            String[] parts = key.split(",");
+            positions.add(new int[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])});
+        }
+        return positions;
     }
 
     private static String key(int x, int y) {
