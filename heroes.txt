@@ -1,0 +1,4 @@
+name=asda;class=WARRIOR;level=1;xp=0;attack=10;defense=5;hitPoints=50
+name=da;class=WARRIOR;level=1;xp=12;attack=10;defense=5;hitPoints=50
+name=asda;class=WARRIOR;level=1;xp=12;attack=10;defense=5;hitPoints=50
+name=da;class=WARRIOR;level=1;xp=17;attack=10;defense=5;hitPoints=50
