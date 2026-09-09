@@ -36,6 +36,6 @@ public class Main {
                   view = new GUIView(); // Implement this class for GUI
             }
             Controller controller = new Controller(view, repository); // test hero and map
-            view.run(controller); // Start the game loop
+            new Thread(() -> view.run(controller)).start(); // Start the game loop
       }
 }

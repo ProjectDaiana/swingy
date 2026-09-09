@@ -96,6 +96,7 @@ public class Controller {
     }
 
     public void handleBattle(boolean isFighting, Hero hero, GameMap map) {
+        view.onBattleStart();
         boolean fight = view.askFight();
 
         if (fight) {
@@ -139,7 +140,6 @@ public class Controller {
     }
 
     private void resolveBattle(Hero hero, GameMap map) {
-        view.onBattleStart();
         BattleResult battleResult = Battle.fight(hero, villian);
         if (battleResult.getResult() == BattleResult.Result.WIN) {
             map.removeVillainAt(map.getHeroX(), map.getHeroY());
