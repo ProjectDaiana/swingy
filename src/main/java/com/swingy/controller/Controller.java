@@ -49,25 +49,6 @@ public class Controller {
         this.map = new GameMap(this.hero.getLevel());
     }
 
-    // public void setupHero() {
-    //     heroes = repository.loadHeroes();
-    //     boolean isNewHero = view.askNewHero();
-
-    //     if (isNewHero) {
-    //         HeroCreationData data = view.createNewHero();
-    //         this.hero = new HeroBuilder(data.name(), data.heroType()).build();
-    //         heroes.add(this.hero);
-    //     } else {
-    //         List<HeroStats> heroStats = new java.util.ArrayList<>();
-    //         for (Hero h : heroes) {
-    //             heroStats.add(new HeroStats(h.getName(), h.getType().toString(), h.getLevel(), h.getXp(), h.getAttack(), h.getDefense(), h.getHitPoints()));
-    //         }
-    //         int index = view.askSelectHero(heroStats);
-    //         this.hero = heroes.get(index);
-    //     }
-
-    //     this.map = new GameMap(this.hero.getLevel());
-    // }
 
     public boolean isHeroDefeated() {
         return hero.isDefeated();
@@ -158,6 +139,7 @@ public class Controller {
     }
 
     private void resolveBattle(Hero hero, GameMap map) {
+        view.onBattleStart();
         BattleResult battleResult = Battle.fight(hero, villian);
         if (battleResult.getResult() == BattleResult.Result.WIN) {
             map.removeVillainAt(map.getHeroX(), map.getHeroY());

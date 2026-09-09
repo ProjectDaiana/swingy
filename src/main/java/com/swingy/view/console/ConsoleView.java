@@ -59,12 +59,6 @@ public class ConsoleView implements GameView {
         System.out.println("Battle Result: " + result.getResult().toString());
     }
 
-    // public HeroCreationData createNewHero() {
-    //     String name = askHeroName();
-    //     HeroType heroType = askHeroType();
-    //     return new HeroCreationData(name, heroType);
-    // }
-
     public boolean askNewHero() {
         System.out.println("Do you want to create a new hero or load an existing one? (1: Create, 2: Load)");
         String input = scanner.nextLine();
@@ -137,6 +131,11 @@ public class ConsoleView implements GameView {
                 System.out.println("Invalid direction. Use W/A/S/D.");
                 return askDirection();
         }
+    }
+
+    @Override
+    public void onBattleStart() {
+        System.out.println("A battle begins!");
     }
 
     public boolean askFight() {
