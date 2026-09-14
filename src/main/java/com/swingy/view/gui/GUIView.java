@@ -25,6 +25,7 @@ import java.awt.GridBagConstraints;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
 import java.util.List;
 import java.awt.Color;
 
@@ -38,6 +39,7 @@ public class GUIView implements GameView {
     private final JPanel heroNamePanel;
     private final JPanel gamePanel;
     private final UIFactory uiFactory;
+    private final IconLoader iconLoader;
 
     private List<HeroStats> loadedHeroes;
     private ImageIcon heroIcon;
@@ -48,6 +50,9 @@ public class GUIView implements GameView {
     private int lastDrawnHeroY = -1;
     private Timer fightTimer;
 
+    private JPanel heroDetailsBar;
+    private JLabel statLevel, statXp, statAttack, statDefense, statHp, statEquipment;
+    private boolean pendingArtifactPickup;
     private boolean gameStarted = false;
 
     public GUIView() {
@@ -67,34 +72,13 @@ public class GUIView implements GameView {
         cardPanel.add(gamePanel, "game");
 
         uiFactory = new UIFactory();
+        iconLoader = new IconLoader();
 
         frame.setContentPane(cardPanel);
         frame.setSize(800, 600);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
         setupKeyBindings();
-    }
-
-    private ImageIcon loadIcon(String path) {
-        java.net.URL url = getClass().getResource(path);
-        if (url == null) {
-            throw new IllegalStateException("Missing required resource: " + path);
-        }
-        return new ImageIcon(url);
-    }
-
-    public ImageIcon loadHeroIcon(HeroType heroType) {
-        String path = "/images/h_" + heroType.toString().toLowerCase() + ".png";
-        return loadIcon(path);
-    }
-
-    private ImageIcon[] loadVillainIcons() {
-        String[] names = { "dragon", "dracula", "skeleton" };
-        ImageIcon[] icons = new ImageIcon[names.length];
-        for (int i = 0; i < names.length; i++) {
-            icons[i] = uiFactory.scaleIcon(loadIcon("/images/v_" + names[i] + ".png"));
-        }
-        return icons;
     }
 
     private GridBagConstraints centeredConstraints(int row, int bottomInset) {
@@ -126,7 +110,7 @@ public class GUIView implements GameView {
         heroPanel.removeAll();
         uiFactory.configureScreenPanel(heroPanel);
 
-        JLabel heroTitle = new JLabel("Choose hero setup");
+        JLabel heroTitle = new JLabel("You need a Hero");
         uiFactory.applyTextStyle(heroTitle, Typography.Style.H1);
 
         JButton createHeroButton = uiFactory.createButton("Create New Hero", UIFactory.Style.PRIMARY);
@@ -143,6 +127,13 @@ public class GUIView implements GameView {
         cardLayout.show(cardPanel, "heroChoice");
     }
 
+    private JComboBox<String> buildHeroDropdown() {
+        String[] options = loadedHeroes.stream()
+                .map(h -> h.name() + " (" + h.type().toUpperCase() + "), L" + h.level())
+                .toArray(String[]::new);
+        return uiFactory.createSelector(options, UIFactory.Style.SELECTOR);
+    }
+
     private void buildHeroSelectionScreen() {
         heroNamePanel.removeAll();
         uiFactory.configureScreenPanel(heroNamePanel);
@@ -151,21 +142,21 @@ public class GUIView implements GameView {
         uiFactory.applyTextStyle(title, Typography.Style.H1);
         heroNamePanel.add(title, centeredConstraints(0, 20));
 
-        for (int i = 0; i < loadedHeroes.size(); i++) {
-            HeroStats h = loadedHeroes.get(i);
-            final int index = i;
-            JButton btn = uiFactory.createButton(h.name() + " (Level " + h.level() + ")", UIFactory.Style.SECONDARY);
-            btn.addActionListener(e -> {
-                controller.selectHero(index);
-                heroIcon = loadHeroIcon(HeroType.valueOf(loadedHeroes.get(index).type()));
-                showHeroDetails(controller.getHeroStats());
-                drawMap(controller.getMapState());
-            });
-            heroNamePanel.add(btn, centeredConstraints(1 + i, 8));
-        }
+        JComboBox<String> heroSelector = buildHeroDropdown();
+        JButton selectButton = uiFactory.createButton("Select", UIFactory.Style.PRIMARY);
+        selectButton.addActionListener(e -> {
+            int index = heroSelector.getSelectedIndex();
+            controller.selectHero(index);
+            heroIcon = iconLoader.hero(controller.getHeroStats().type());
+            showHeroDetails(controller.getHeroStats());
+            drawMap(controller.getMapState());
+        });
 
+        heroNamePanel.add(heroSelector, centeredConstraints(1, 12));
+        heroNamePanel.add(selectButton, centeredConstraints(2, 0));
         heroNamePanel.revalidate();
         heroNamePanel.repaint();
+        cardLayout.show(cardPanel, "heroName");
     }
 
     private void buildHeroCreationScreen() {
@@ -187,7 +178,7 @@ public class GUIView implements GameView {
             HeroType selectedClass = (HeroType) heroTypeSelector.getSelectedItem();
             if (!name.isEmpty() && selectedClass != null) {
                 controller.createHero(name, selectedClass);
-                heroIcon = loadHeroIcon(selectedClass);
+                heroIcon = iconLoader.hero(selectedClass);
                 showHeroDetails(controller.getHeroStats());
                 drawMap(controller.getMapState());
             }
@@ -231,9 +222,10 @@ public class GUIView implements GameView {
 
     @Override
     public boolean askFight() {
-        System.out.println("[BATTLE] Asking player: fight or flee?");
-        int response = JOptionPane.showConfirmDialog(frame, "Do you want to fight?", "Fight",
-                JOptionPane.YES_NO_OPTION);
+        MapState current = controller.getMapState();
+        ImageIcon villainIcon = baseIcons[current.heroY()][current.heroX()];
+        int response = JOptionPane.showConfirmDialog(frame, "A villain blocks your path!\nDo you want to fight?",
+                "Fight", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, villainIcon);
         boolean fight = response == JOptionPane.YES_OPTION;
         System.out.println("[BATTLE] Player chose: " + (fight ? "FIGHT" : "FLEE"));
         return fight;
@@ -241,30 +233,16 @@ public class GUIView implements GameView {
 
     @Override
     public boolean askArtifactPickup(ArtifactStats artifactStats) {
-        System.out.println(
-                "[ARTIFACT] Dropped: " + artifactStats.type() + " (value: " + artifactStats.value() + "). Asking player: pick up or leave?");
         MapState current = controller.getMapState();
-        ImageIcon artifactIcon = loadArtifactIcon(artifactStats.type());
-        setCellIcon(current.heroX(), current.heroY(), artifactIcon);
-        int response = JOptionPane.showConfirmDialog(frame,
-                "Do you want to pick up this " + artifactStats.type() + " ? "
-                        + artifactStats.description() + " will increase by " + artifactStats.value() + ".",
-                "Artifact Pickup",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                artifactIcon);
-        boolean pickup = response == JOptionPane.YES_OPTION;
-        System.out.println("[ARTIFACT] Player chose: " + (pickup ? "PICK UP" : "LEAVE"));
-        return pickup;
+        setCellIcon(current.heroX(), current.heroY(), iconLoader.artifact(artifactStats.type()));
+        System.out.println("[ARTIFACT] Player chose: " + (pendingArtifactPickup ? "PICK UP" : "LEAVE"));
+        return pendingArtifactPickup;
     }
-
-    // private JPanel drawHeroDetailsBar(HeroStats hero) {
-    // return uiFactory.createHeroDetailsBar(hero);
-    // }
 
     @Override
     public void run(Controller controller) {
         this.controller = controller;
+        iconLoader.preloadAll();
         loadedHeroes = controller.loadHeroes();
         // SwingUtilities.invokeLater(() -> {
         buildStartScreen();
@@ -280,7 +258,7 @@ public class GUIView implements GameView {
                 gamePanel.setLayout(new BorderLayout(0, 0));
                 gamePanel.setBackground(ColorPalette.BLACK);
                 gamePanel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
-                JPanel heroDetailsBar = uiFactory.createHeroDetailsBar(controller.getHeroStats());
+                initHeroDetailsBar(controller.getHeroStats());
                 gamePanel.add(heroDetailsBar, BorderLayout.NORTH);
                 gamePanel.add(initMap(state), BorderLayout.CENTER);
                 gameStarted = true;
@@ -291,6 +269,7 @@ public class GUIView implements GameView {
                 }
                 System.out.println("Updating map for hero position: (" + state.heroX() + ", " + state.heroY() + ")");
                 updateGrid(state);
+                updateHeroDetailsBar();
             }
             gamePanel.revalidate();
             gamePanel.repaint();
@@ -311,6 +290,46 @@ public class GUIView implements GameView {
         lastDrawnHeroY = newY;
     }
 
+    private String buildEquipmentText(HeroStats stats) {
+        List<String> equipped = new ArrayList<>();
+        if (!stats.weapon().equals("none"))
+            equipped.add("Weapon " + stats.weapon());
+        if (!stats.armor().equals("none"))
+            equipped.add("Armor " + stats.armor());
+        if (!stats.helm().equals("none"))
+            equipped.add("Helm " + stats.helm());
+        return equipped.isEmpty() ? "Equipment: none" : String.join("  ·  ", equipped);
+    }
+
+    private void initHeroDetailsBar(HeroStats stats) {
+        statLevel = uiFactory.createStatCell("Level " + stats.level(), Typography.Style.STAT_ACCENT, true);
+        JLabel statName = uiFactory.createStatCell(stats.name(), true);
+        JLabel statType = uiFactory.createStatCell(stats.type(), true);
+        statXp = uiFactory.createStatCell("Experience " + stats.xp(), true);
+        statAttack = uiFactory.createStatCell("Attack " + stats.attack(), true);
+        statDefense = uiFactory.createStatCell("Defense " + stats.defense(), true);
+        statHp = uiFactory.createStatCell("Hit Points " + stats.hitPoints(), true);
+        statEquipment = uiFactory.createStatCell(buildEquipmentText(stats), false);
+
+        heroDetailsBar = new JPanel(new GridLayout(1, 8, 0, 0));
+        heroDetailsBar.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+        heroDetailsBar.setBackground(ColorPalette.BLACK);
+        heroDetailsBar.setOpaque(true);
+        for (JLabel cell : new JLabel[] { statLevel, statName, statType, statXp, statAttack, statDefense, statHp,
+                statEquipment })
+            heroDetailsBar.add(cell);
+    }
+
+    private void updateHeroDetailsBar() {
+        HeroStats stats = controller.getHeroStats();
+        statLevel.setText("Level " + stats.level());
+        statXp.setText("Experience " + stats.xp());
+        statAttack.setText("Attack " + stats.attack());
+        statDefense.setText("Defense " + stats.defense());
+        statHp.setText("Hit Points " + stats.hitPoints());
+        statEquipment.setText(buildEquipmentText(stats));
+    }
+
     private JPanel initMap(MapState map) {
         int size = map.size();
         JPanel mapPanel = new JPanel(new GridLayout(size, size));
@@ -319,8 +338,7 @@ public class GUIView implements GameView {
         baseIcons = new ImageIcon[size][size];
         mapPanel.setBackground(ColorPalette.DARK_GRAY);
         mapPanel.setOpaque(true);
-        heroIcon = uiFactory.scaleIcon(heroIcon);
-        villainIcons = loadVillainIcons();
+        villainIcons = iconLoader.allVillains();
 
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
@@ -388,7 +406,6 @@ public class GUIView implements GameView {
                     controller.onMove(direction);
                     drawMap(controller.getMapState());
                     if (controller.isAtBorder()) {
-                        showVictory("You reached the border! You win!");
                         controller.endGame();
                     } else if (controller.isHeroDefeated()) {
                         showGameOver("Your hero was defeated. Game over.");
@@ -418,10 +435,39 @@ public class GUIView implements GameView {
             baseIcons[y][x] = null;
             System.out.println("[BATTLE] WIN at (" + x + ", " + y + ")" +
                     (result.getArtifact() != null ? " | artifact: " + result.getArtifact().getType() : ""));
+            if (result.getArtifact() != null) {
+                ImageIcon artifactIcon = iconLoader.artifact(result.getArtifact().getType());
+                String statName;
+                switch (result.getArtifact().getType()) {
+                    case WEAPON:
+                        statName = "Attack";
+                        break;
+                    case ARMOR:
+                        statName = "Defense";
+                        break;
+                    default:
+                        statName = "Hit Points";
+                        break;
+                }
+                int response = JOptionPane.showConfirmDialog(frame,
+                        "<html>You won this battle!<br/>"
+                                + "Found a " + result.getArtifact().getType() + "<br/>"
+                                + statName + " will increase by +" + result.getArtifact().getValue() + "<br/>"
+                                + "Pick it up?</html>",
+                        "Victory", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, artifactIcon);
+                pendingArtifactPickup = (response == JOptionPane.YES_OPTION);
+            } else {
+                JOptionPane.showMessageDialog(frame, "You won this battle!", "Victory",
+                        JOptionPane.INFORMATION_MESSAGE);
+                pendingArtifactPickup = false;
+            }
         } else {
             System.out.println("[BATTLE] LOSE at (" + x + ", " + y + ")");
+            ImageIcon loseIcon = iconLoader.lose();
+            JOptionPane.showMessageDialog(frame, "Your hero was defeated!", "Defeat",
+                    JOptionPane.PLAIN_MESSAGE, loseIcon);
         }
-        setCellIcon(x, y, loadResultIcon(won, result.getArtifact()));
+        setCellIcon(x, y, resultIcon(won, result.getArtifact()));
     }
 
     @Override
@@ -433,22 +479,17 @@ public class GUIView implements GameView {
     @Override
     public void showGameOver(String message) {
         System.out.println("[GAME OVER] " + message);
-        JOptionPane.showMessageDialog(null, message);
     }
 
     public boolean askPlayAgain() {
         return false;
     }
 
-    private ImageIcon loadResultIcon(boolean won, Artifact artifact) {
+    private ImageIcon resultIcon(boolean won, Artifact artifact) {
         if (won) {
-            if (artifact != null) {
-                return uiFactory.scaleIcon(loadIcon(
-                        "/images/a_" + artifact.getType().toString().toLowerCase() + ".png"));
-            }
-            return heroIcon;
+            return artifact != null ? iconLoader.artifact(artifact.getType()) : heroIcon;
         }
-        return uiFactory.scaleIcon(loadIcon("/images/lose.png"));
+        return iconLoader.lose();
     }
 
     private void setCellIcon(int x, int y, ImageIcon icon) {
@@ -459,8 +500,8 @@ public class GUIView implements GameView {
         if (fightTimer != null) {
             fightTimer.stop();
         }
-        ImageIcon icon1 = uiFactory.scaleIcon(loadIcon("/images/fight_1.png"));
-        ImageIcon icon2 = uiFactory.scaleIcon(loadIcon("/images/fight_2.png"));
+        ImageIcon icon1 = iconLoader.fight(1);
+        ImageIcon icon2 = iconLoader.fight(2);
         boolean[] showFirst = { true };
         fightTimer = new Timer(300, e -> {
             setCellIcon(x, y, showFirst[0] ? icon1 : icon2);
@@ -471,7 +512,4 @@ public class GUIView implements GameView {
         fightTimer.start();
     }
 
-    private ImageIcon loadArtifactIcon(String type) {
-        return uiFactory.scaleIcon(loadIcon("/images/a_" + type.toLowerCase() + ".png"));
-    }
 }
