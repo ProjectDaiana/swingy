@@ -18,20 +18,20 @@ Requires Java 17+.
 
 The project follows the **MVC pattern**. The controller drives the game loop and delegates all input/output through a `GameView` interface, which both `ConsoleView` and `GUIView` implement.
 
-```mermaid
-graph TD
-    Main --> Controller
-    Controller --> GameView
-    GameView -->|implements| ConsoleView
-    GameView -->|implements| GUIView
-    Controller --> HeroRepository
-    HeroRepository -->|implements| FileHeroRepository
-    Controller --> GameMap
-    Controller --> Battle
-    GameMap --> Hero
-    GameMap --> Villain
-    Battle --> Hero
-    Battle --> Villain
+```
+Main
+ └── Controller
+      ├── GameView (interface)
+      │    ├── ConsoleView
+      │    └── GUIView
+      ├── HeroRepository (interface)
+      │    └── FileHeroRepository
+      ├── GameMap
+      │    ├── Hero
+      │    └── Villain
+      └── Battle
+           ├── Hero
+           └── Villain
 ```
 
 ### Package layout
@@ -40,16 +40,16 @@ graph TD
 com.swingy/
 ├── Main.java
 ├── controller/
-│   └── Controller.java          # game loop, battle logic, hero setup
+│   └── Controller.java          — game loop, battle logic, hero setup
 ├── model/
 │   ├── hero/
-│   │   ├── Hero.java            # stats, level-up, artifact slot
+│   │   ├── Hero.java            — stats, level-up, artifact slots
 │   │   ├── HeroBuilder.java
-│   │   └── HeroType.java        # WARRIOR, WIZARD, ROGUE
+│   │   └── HeroType.java        — WARRIOR, WIZARD, ROGUE
 │   ├── villain/
 │   │   └── Villain.java
 │   ├── artifact/
-│   │   ├── Artifact.java        # base class with value field
+│   │   ├── Artifact.java        — base class with value field
 │   │   ├── Weapon.java
 │   │   ├── Armor.java
 │   │   └── Helm.java
@@ -57,23 +57,25 @@ com.swingy/
 │   │   ├── Battle.java
 │   │   └── BattleResult.java
 │   ├── map/
-│   │   └── GameMap.java         # grid, hero/villain positions
+│   │   └── GameMap.java         — grid, hero/villain positions
 │   ├── DirectionType.java
 │   └── GameResult.java
 ├── view/
-│   ├── GameView.java            # interface shared by both views
-│   ├── HeroCreationData.java    # record DTO
+│   ├── GameView.java            — interface shared by both views
+│   ├── HeroStats.java           — DTO record
+│   ├── MapState.java            — DTO record
+│   ├── ArtifactStats.java       — DTO record
 │   ├── console/
 │   │   └── ConsoleView.java
 │   └── gui/
 │       ├── GUIView.java
-│       ├── UIFactory.java       # component factory
-│       ├── ColorPalette.java    # color tokens
-│       ├── Typography.java      # text style tokens
-│       └── Helpers.java
+│       ├── UIFactory.java       — component factory
+│       ├── IconLoader.java      — icon cache, preloading
+│       ├── ColorPalette.java    — color tokens
+│       └── Typography.java      — text style tokens
 └── repository/
-    ├── HeroRepository.java      # interface
-    └── FileHeroRepository.java  # text-file persistence (mandatory)
+    ├── HeroRepository.java      — interface
+    └── FileHeroRepository.java  — text-file persistence (mandatory)
 ```
 
 ---
@@ -90,6 +92,7 @@ The GUI uses a small design system centralised in three files. All visual decisi
 | `DARK_GRAY` | `#151515` | Map grid, text fields, selectors |
 | `LIGHT_GRAY` | `#EBEBEB` | All text labels |
 | `WHITE` | `#FFFFFF` | Cell borders |
+| `ACCENT` | `#20639B` | Primary buttons, highlighted stats |
 
 ### Typography scale
 
@@ -98,25 +101,13 @@ The GUI uses a small design system centralised in three files. All visual decisi
 | `TITLE` | 28px | Bold | LIGHT_GRAY |
 | `H1` | 24px | Bold | LIGHT_GRAY |
 | `H2` | 18px | Bold | LIGHT_GRAY |
-| `BODY` | 16px | Plain | LIGHT_GRAY |
+| `STAT` | 12px | Plain | LIGHT_GRAY |
+| `STAT_ACCENT` | 12px | Bold | ACCENT |
 
 ### UIFactory
 
-`UIFactory` is the single entry point to create styled components. Nothing in `GUIView` calls `new JButton()` directly — it always goes through the factory.
+`UIFactory` is the single entry point to create styled components. Nothing in `GUIView` creates raw Swing components directly — it always goes through the factory. Supported styles: `PRIMARY`, `SECONDARY`, `FIELD`, `SELECTOR`.
 
-```mermaid
-graph TD
-    GUIView -->|createButton PRIMARY| UIFactory
-    GUIView -->|createButton SECONDARY| UIFactory
-    GUIView -->|createTextField FIELD| UIFactory
-    GUIView -->|createSelector SELECTOR| UIFactory
-    GUIView -->|applyTextStyle| UIFactory
-    GUIView -->|configureScreenPanel| UIFactory
-    UIFactory --> ColorPalette
-    UIFactory --> Typography
-```
-
----
 ---
 
 ## Gameplay Rules
@@ -124,14 +115,14 @@ graph TD
 - **Map size:** `(level - 1) * 5 + 10 - (level % 2)`
 - **Hero starts** at the center; **wins** by reaching any border cell
 - **XP to next level:** `level * 1000 + (level - 1)^2 * 450`
-- **Encounter:** fight or run (50 % escape chance)
+- **Encounter:** fight or run (50% escape chance)
 - **Artifacts:** Weapon (+attack), Armor (+defense), Helm (+hit points) — value scales with villain strength; hero decides to keep or leave after winning
 
 ---
 
 ## Sprites
 
-All icons are 24 × 24 px pixel art.
+All icons are pixel art, scaled to 48 × 48 px in the GUI.
 
 ### Heroes
 
