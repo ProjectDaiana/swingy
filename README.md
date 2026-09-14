@@ -16,23 +16,22 @@ Requires Java 17+.
 
 ## Architecture
 
-The project follows the **MVC pattern**. The controller drives the game loop and delegates all input/output through a `GameView` interface, which both `ConsoleView` and `GUIView` implement.
+The project follows the **MVC pattern**. The controller drives the game loop and delegates all input/output through a `GameView` interface, which both `ConsoleView` and `GUIView` implement. Hero persistence uses the **Repository pattern** — `HeroRepository` is an interface; `FileHeroRepository` is the concrete implementation. The view receives data exclusively through **DTO records** (`HeroStats`, `MapState`, `ArtifactStats`) — no model objects are ever exposed to the view.
 
 ```
 Main
+ ├── FileHeroRepository  implements  HeroRepository
+ ├── ConsoleView         implements  GameView
+ │   or GUIView          implements  GameView
  └── Controller
-      ├── GameView (interface)
-      │    ├── ConsoleView
-      │    └── GUIView
-      ├── HeroRepository (interface)
-      │    └── FileHeroRepository
+      ├── GameView        (reference to the view above)
+      ├── HeroRepository  (reference to the repository above)
+      ├── Hero
       ├── GameMap
-      │    ├── Hero
-      │    └── Villain
-      └── Battle
-           ├── Hero
-           └── Villain
+      └── Villain
 ```
+
+`Battle` is a utility class called statically from inside `Controller` — it has no state of its own.
 
 ### Package layout
 
@@ -44,7 +43,7 @@ com.swingy/
 ├── model/
 │   ├── hero/
 │   │   ├── Hero.java            — stats, level-up, artifact slots
-│   │   ├── HeroBuilder.java
+│   │   ├── HeroBuilder.java     — Builder pattern for hero construction
 │   │   └── HeroType.java        — WARRIOR, WIZARD, ROGUE
 │   ├── villain/
 │   │   └── Villain.java
@@ -54,7 +53,7 @@ com.swingy/
 │   │   ├── Armor.java
 │   │   └── Helm.java
 │   ├── battle/
-│   │   ├── Battle.java
+│   │   ├── Battle.java          — utility class, static methods only
 │   │   └── BattleResult.java
 │   ├── map/
 │   │   └── GameMap.java         — grid, hero/villain positions
@@ -69,7 +68,7 @@ com.swingy/
 │   │   └── ConsoleView.java
 │   └── gui/
 │       ├── GUIView.java
-│       ├── UIFactory.java       — component factory
+│       ├── UIFactory.java       — Factory pattern for styled components
 │       ├── IconLoader.java      — icon cache, preloading
 │       ├── ColorPalette.java    — color tokens
 │       └── Typography.java      — text style tokens
@@ -106,7 +105,7 @@ The GUI uses a small design system centralised in three files. All visual decisi
 
 ### UIFactory
 
-`UIFactory` is the single entry point to create styled components. Nothing in `GUIView` creates raw Swing components directly — it always goes through the factory. Supported styles: `PRIMARY`, `SECONDARY`, `FIELD`, `SELECTOR`.
+`UIFactory` is the single entry point to create styled components following the **Factory pattern**. Nothing in `GUIView` creates raw Swing components directly — it always goes through the factory. Supported styles: `PRIMARY`, `SECONDARY`, `FIELD`, `SELECTOR`.
 
 ---
 
@@ -128,22 +127,22 @@ All icons are pixel art, scaled to 48 × 48 px in the GUI.
 
 | Warrior | Rogue | Wizard |
 |:---:|:---:|:---:|
-| <img src="src/main/resources/images/h_warrior.png" width="24" height="24"> | <img src="src/main/resources/images/h_rogue.png" width="24" height="24"> | <img src="src/main/resources/images/h_wizard.png" width="24" height="24"> |
+| <img src="src/main/resources/images/h_warrior.png" width="48" height="48"> | <img src="src/main/resources/images/h_rogue.png" width="48" height="48"> | <img src="src/main/resources/images/h_wizard.png" width="48" height="48"> |
 
 ### Villains
 
 | Dragon | Dracula | Skeleton |
 |:---:|:---:|:---:|
-| <img src="src/main/resources/images/v_dragon.png" width="24" height="24"> | <img src="src/main/resources/images/v_dracula.png" width="24" height="24"> | <img src="src/main/resources/images/v_skeleton.png" width="24" height="24"> |
+| <img src="src/main/resources/images/v_dragon.png" width="48" height="48"> | <img src="src/main/resources/images/v_dracula.png" width="48" height="48"> | <img src="src/main/resources/images/v_skeleton.png" width="48" height="48"> |
 
 ### Artifacts
 
 | Weapon | Armor | Helm |
 |:---:|:---:|:---:|
-| <img src="src/main/resources/images/a_weapon.png" width="24" height="24"> | <img src="src/main/resources/images/a_armor.png" width="24" height="24"> | <img src="src/main/resources/images/a_helm.png" width="24" height="24"> |
+| <img src="src/main/resources/images/a_weapon.png" width="48" height="48"> | <img src="src/main/resources/images/a_armor.png" width="48" height="48"> | <img src="src/main/resources/images/a_helm.png" width="48" height="48"> |
 
 ### Battle
 
 | Fight | Fight 2 | Lose |
 |:---:|:---:|:---:|
-| <img src="src/main/resources/images/fight_1.png" width="24" height="24"> | <img src="src/main/resources/images/fight_2.png" width="24" height="24"> | <img src="src/main/resources/images/lose.png" width="24" height="24"> |
+| <img src="src/main/resources/images/fight_1.png" width="48" height="48"> | <img src="src/main/resources/images/fight_2.png" width="48" height="48"> | <img src="src/main/resources/images/lose.png" width="48" height="48"> |
