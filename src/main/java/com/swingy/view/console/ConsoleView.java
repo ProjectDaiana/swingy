@@ -5,10 +5,9 @@ import com.swingy.model.hero.HeroType;
 import com.swingy.view.GameView;
 import com.swingy.view.HeroStats;
 import com.swingy.view.MapState;
+import com.swingy.view.ArtifactStats;
 import com.swingy.model.DirectionType;
 import com.swingy.model.battle.BattleResult;
-import com.swingy.model.artifact.Artifact;
-// import com.swingy.view.HeroCreationData;
 import java.util.Scanner;
 import java.util.List;
 
@@ -148,13 +147,15 @@ public class ConsoleView implements GameView {
         return "Y".equals(input);
     }
 
-    public boolean askArtifactPickup(Artifact artifact) {
+    @Override
+    public boolean askArtifactPickup(ArtifactStats artifactStats) {
+        String artifactType = artifactStats.type();
         System.out.println(
-                "Villain dropped:: " + artifact.getType().toString() + ". Do you want to pick it up? (Y/N): ");
+                "Villain dropped:: " + artifactType + ". Do you want to pick it up? (Y/N): ");
         String input = scanner.nextLine().toUpperCase();
         if (!"Y".equals(input) && !"N".equals(input)) {
             System.out.println("Invalid input. Please enter Y or N.");
-            return askArtifactPickup(artifact);
+            return askArtifactPickup(artifactStats);
         }
         return "Y".equals(input);
     }

@@ -19,7 +19,7 @@ import com.swingy.model.hero.HeroType;
 import com.swingy.view.GameView;
 import com.swingy.view.HeroStats;
 import com.swingy.view.MapState;
-
+import com.swingy.view.ArtifactStats;
 import java.awt.CardLayout;
 import java.awt.GridBagConstraints;
 import java.awt.BorderLayout;
@@ -51,6 +51,7 @@ public class GUIView implements GameView {
     private boolean gameStarted = false;
 
     public GUIView() {
+        applyDialogStyle();
         frame = new JFrame();
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
@@ -140,7 +141,6 @@ public class GUIView implements GameView {
         heroPanel.revalidate();
         heroPanel.repaint();
         cardLayout.show(cardPanel, "heroChoice");
-
     }
 
     private void buildHeroSelectionScreen() {
@@ -240,50 +240,47 @@ public class GUIView implements GameView {
     }
 
     @Override
-    public boolean askArtifactPickup(Artifact artifactDetails) {
+    public boolean askArtifactPickup(ArtifactStats artifactStats) {
         System.out.println(
-                "[ARTIFACT] Dropped: " + artifactDetails.getType() + " (value: " + artifactDetails.getValue() + ")");
+                "[ARTIFACT] Dropped: " + artifactStats.type() + " (value: " + artifactStats.value() + "). Asking player: pick up or leave?");
         MapState current = controller.getMapState();
-        setCellIcon(current.heroX(), current.heroY(), loadArtifactIcon(artifactDetails.getType()));
-        int response = JOptionPane.showConfirmDialog(frame, "Do you want to pick up this artifact?", "Artifact Pickup",
-                JOptionPane.YES_NO_OPTION);
+        ImageIcon artifactIcon = loadArtifactIcon(artifactStats.type());
+        setCellIcon(current.heroX(), current.heroY(), artifactIcon);
+        int response = JOptionPane.showConfirmDialog(frame,
+                "Do you want to pick up this " + artifactStats.type() + " ? "
+                        + artifactStats.description() + " will increase by " + artifactStats.value() + ".",
+                "Artifact Pickup",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                artifactIcon);
         boolean pickup = response == JOptionPane.YES_OPTION;
         System.out.println("[ARTIFACT] Player chose: " + (pickup ? "PICK UP" : "LEAVE"));
         return pickup;
     }
 
-    private JLabel drawHeroDetailsBar(HeroStats hero) {
-        JLabel heroDetails = new JLabel("<html>Hero Details:<br/>" +
-                "Name: " + hero.name() + "<br/>" +
-                "Class: " + hero.type() + "<br/>" +
-                "Level: " + hero.level() + "<br/>" +
-                "XP: " + hero.xp() + "<br/>" +
-                "Attack: " + hero.attack() + "<br/>" +
-                "Defense: " + hero.defense() + "<br/>" +
-                "Hit Points: " + hero.hitPoints() + "</html>");
-        uiFactory.applyTextStyle(heroDetails, Typography.Style.BODY);
-        return heroDetails;
-    }
+    // private JPanel drawHeroDetailsBar(HeroStats hero) {
+    // return uiFactory.createHeroDetailsBar(hero);
+    // }
 
     @Override
     public void run(Controller controller) {
         this.controller = controller;
         loadedHeroes = controller.loadHeroes();
-        SwingUtilities.invokeLater(() -> {
-            buildStartScreen();
-            buildHeroChoiceScreen();
-        });
-
+        // SwingUtilities.invokeLater(() -> {
+        buildStartScreen();
+        buildHeroChoiceScreen();
+        // });
     }
 
     @Override
     public void drawMap(MapState state) {
         SwingUtilities.invokeLater(() -> {
             if (!gameStarted) {
-                uiFactory.configureScreenPanel(gamePanel);
                 gamePanel.removeAll();
-                gamePanel.setLayout(new BorderLayout(10, 10));
-                JLabel heroDetailsBar = drawHeroDetailsBar(controller.getHeroStats());
+                gamePanel.setLayout(new BorderLayout(0, 0));
+                gamePanel.setBackground(ColorPalette.BLACK);
+                gamePanel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+                JPanel heroDetailsBar = uiFactory.createHeroDetailsBar(controller.getHeroStats());
                 gamePanel.add(heroDetailsBar, BorderLayout.NORTH);
                 gamePanel.add(initMap(state), BorderLayout.CENTER);
                 gameStarted = true;
@@ -330,7 +327,7 @@ public class GUIView implements GameView {
                 JLabel cell = new JLabel();
                 cell.setHorizontalAlignment(JLabel.CENTER);
                 cell.setVerticalAlignment(JLabel.CENTER);
-                cell.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+                cell.setBorder(BorderFactory.createDashedBorder(Color.DARK_GRAY, 1f, 4f, 2f, false));
 
                 if (x == map.heroX() && y == map.heroY()) {
                     cell.setIcon(heroIcon);
@@ -353,6 +350,16 @@ public class GUIView implements GameView {
         }
 
         return mapPanel;
+    }
+
+    private void applyDialogStyle() {
+        javax.swing.UIManager.put("OptionPane.background", ColorPalette.BLACK);
+        javax.swing.UIManager.put("Panel.background", ColorPalette.BLACK);
+        javax.swing.UIManager.put("OptionPane.messageForeground", ColorPalette.LIGHT_GRAY);
+        javax.swing.UIManager.put("OptionPane.messageFont", Typography.BASE_FONT.deriveFont(16f));
+        javax.swing.UIManager.put("Button.background", ColorPalette.ACCENT);
+        javax.swing.UIManager.put("Button.foreground", ColorPalette.BLACK);
+        javax.swing.UIManager.put("Button.font", Typography.BASE_FONT.deriveFont(14f));
     }
 
     private void setupKeyBindings() {
@@ -379,14 +386,13 @@ public class GUIView implements GameView {
                 }
                 if (direction != null) {
                     controller.onMove(direction);
+                    drawMap(controller.getMapState());
                     if (controller.isAtBorder()) {
                         showVictory("You reached the border! You win!");
                         controller.endGame();
                     } else if (controller.isHeroDefeated()) {
                         showGameOver("Your hero was defeated. Game over.");
                         controller.endGame();
-                    } else {
-                        drawMap(controller.getMapState());
                     }
                 }
             }
@@ -465,7 +471,7 @@ public class GUIView implements GameView {
         fightTimer.start();
     }
 
-    private ImageIcon loadArtifactIcon(com.swingy.model.artifact.ArtifactType type) {
-        return uiFactory.scaleIcon(loadIcon("/images/a_" + type.toString().toLowerCase() + ".png"));
+    private ImageIcon loadArtifactIcon(String type) {
+        return uiFactory.scaleIcon(loadIcon("/images/a_" + type.toLowerCase() + ".png"));
     }
 }

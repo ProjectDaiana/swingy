@@ -14,6 +14,7 @@ import com.swingy.model.GameResult;
 import com.swingy.model.DirectionType;
 import com.swingy.view.HeroStats;
 import com.swingy.view.MapState;
+import com.swingy.view.ArtifactStats;
 import java.util.List;
 
 public class Controller {
@@ -40,15 +41,14 @@ public class Controller {
 
     private HeroStats toHeroStats(Hero h) {
         com.swingy.model.artifact.Artifact weapon = h.getEquipped(com.swingy.model.artifact.ArtifactType.WEAPON);
-        com.swingy.model.artifact.Artifact armor  = h.getEquipped(com.swingy.model.artifact.ArtifactType.ARMOR);
-        com.swingy.model.artifact.Artifact helm   = h.getEquipped(com.swingy.model.artifact.ArtifactType.HELM);
+        com.swingy.model.artifact.Artifact armor = h.getEquipped(com.swingy.model.artifact.ArtifactType.ARMOR);
+        com.swingy.model.artifact.Artifact helm = h.getEquipped(com.swingy.model.artifact.ArtifactType.HELM);
         return new HeroStats(
-            h.getName(), h.getType().toString(), h.getLevel(), h.getXp(),
-            h.getAttack(), h.getDefense(), h.getHitPoints(),
-            weapon != null ? "+" + weapon.getValue() : "none",
-            armor  != null ? "+" + armor.getValue()  : "none",
-            helm   != null ? "+" + helm.getValue()   : "none"
-        );
+                h.getName(), h.getType().toString(), h.getLevel(), h.getXp(),
+                h.getAttack(), h.getDefense(), h.getHitPoints(),
+                weapon != null ? "+" + weapon.getValue() : "none",
+                armor != null ? "+" + armor.getValue() : "none",
+                helm != null ? "+" + helm.getValue() : "none");
     }
 
     public void createHero(String name, HeroType type) {
@@ -140,7 +140,7 @@ public class Controller {
                 hero.gainXp(battleResult.getXPGained());
                 Artifact artifact = battleResult.getArtifact();
                 if (artifact != null) {
-                    boolean pickup = view.askArtifactPickup(artifact);
+                    boolean pickup = view.askArtifactPickup(getArtifactStats(artifact));
                     onArtifactPickup(pickup, hero, artifact);
                 }
             }
@@ -166,6 +166,15 @@ public class Controller {
 
     public HeroStats getHeroStats() {
         return toHeroStats(hero);
+    }
+
+    public ArtifactStats getArtifactStats(Artifact artifact) {
+        String description = switch (artifact.getType()) {
+            case WEAPON -> "attack";
+            case ARMOR -> "defense";
+            case HELM -> "hitPoints";
+        };
+        return new ArtifactStats(artifact.getType().toString(), artifact.getValue(), description);
     }
 
 }
