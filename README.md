@@ -85,23 +85,23 @@ The GUI uses a small design system centralised in three files. All visual decisi
 
 ### Color palette
 
-| Token | Hex | Used for |
-|---|---|---|
-| `BLACK` | `#111111` | Screen background |
-| `DARK_GRAY` | `#151515` | Map grid, text fields, selectors |
-| `LIGHT_GRAY` | `#EBEBEB` | All text labels |
-| `WHITE` | `#FFFFFF` | Cell borders |
-| `ACCENT` | `#20639B` | Primary buttons, highlighted stats |
+| Token        | Hex       | Used for                           |
+| ------------ | --------- | ---------------------------------- |
+| `BLACK`      | `#111111` | Screen background                  |
+| `DARK_GRAY`  | `#151515` | Map grid, text fields, selectors   |
+| `LIGHT_GRAY` | `#EBEBEB` | All text labels                    |
+| `WHITE`      | `#FFFFFF` | Cell borders                       |
+| `ACCENT`     | `#20639B` | Primary buttons, highlighted stats |
 
 ### Typography scale
 
-| Style | Size | Weight | Color |
-|---|---|---|---|
-| `TITLE` | 28px | Bold | LIGHT_GRAY |
-| `H1` | 24px | Bold | LIGHT_GRAY |
-| `H2` | 18px | Bold | LIGHT_GRAY |
-| `STAT` | 12px | Plain | LIGHT_GRAY |
-| `STAT_ACCENT` | 12px | Bold | ACCENT |
+| Style         | Size | Weight | Color      |
+| ------------- | ---- | ------ | ---------- |
+| `TITLE`       | 28px | Bold   | LIGHT_GRAY |
+| `H1`          | 24px | Bold   | LIGHT_GRAY |
+| `H2`          | 18px | Bold   | LIGHT_GRAY |
+| `STAT`        | 12px | Plain  | LIGHT_GRAY |
+| `STAT_ACCENT` | 12px | Bold   | ACCENT     |
 
 ### UIFactory
 
@@ -121,28 +121,28 @@ The GUI uses a small design system centralised in three files. All visual decisi
 
 ## Sprites
 
-All icons are pixel art, scaled to 48 × 48 px in the GUI.
+All icons are pixel art displayed at native size.
 
 ### Heroes
 
 | Warrior | Rogue | Wizard |
 |:---:|:---:|:---:|
-| <img src="src/main/resources/images/h_warrior.png" width="48" height="48"> | <img src="src/main/resources/images/h_rogue.png" width="48" height="48"> | <img src="src/main/resources/images/h_wizard.png" width="48" height="48"> |
+| ![Warrior](src/main/resources/images/h_warrior.png) | ![Rogue](src/main/resources/images/h_rogue.png) | ![Wizard](src/main/resources/images/h_wizard.png) |
 
 ### Villains
 
 | Dragon | Dracula | Skeleton |
 |:---:|:---:|:---:|
-| <img src="src/main/resources/images/v_dragon.png" width="48" height="48"> | <img src="src/main/resources/images/v_dracula.png" width="48" height="48"> | <img src="src/main/resources/images/v_skeleton.png" width="48" height="48"> |
+| ![Dragon](src/main/resources/images/v_dragon.png) | ![Dracula](src/main/resources/images/v_dracula.png) | ![Skeleton](src/main/resources/images/v_skeleton.png) |
 
 ### Artifacts
 
 | Weapon | Armor | Helm |
 |:---:|:---:|:---:|
-| <img src="src/main/resources/images/a_weapon.png" width="48" height="48"> | <img src="src/main/resources/images/a_armor.png" width="48" height="48"> | <img src="src/main/resources/images/a_helm.png" width="48" height="48"> |
+| ![Weapon](src/main/resources/images/a_weapon.png) | ![Armor](src/main/resources/images/a_armor.png) | ![Helm](src/main/resources/images/a_helm.png) |
 
 ### Battle
 
 | Fight | Fight 2 | Lose |
 |:---:|:---:|:---:|
-| <img src="src/main/resources/images/fight_1.png" width="48" height="48"> | <img src="src/main/resources/images/fight_2.png" width="48" height="48"> | <img src="src/main/resources/images/lose.png" width="48" height="48"> |
+| ![Fight](src/main/resources/images/fight_1.png) | ![Fight 2](src/main/resources/images/fight_2.png) | ![Lose](src/main/resources/images/lose.png) |
