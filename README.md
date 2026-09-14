@@ -121,28 +121,28 @@ The GUI uses a small design system centralised in three files. All visual decisi
 
 ## Sprites
 
-All icons are pixel art displayed at native size.
+All icons are vector art displayed at 56 × 56 px.
 
 ### Heroes
 
 | Warrior | Rogue | Wizard |
 |:---:|:---:|:---:|
-| ![Warrior](src/main/resources/images/h_warrior.png) | ![Rogue](src/main/resources/images/h_rogue.png) | ![Wizard](src/main/resources/images/h_wizard.png) |
+| <img src="src/main/resources/images/svg/h_warrior.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/h_rogue.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/h_wizard.svg" width="56" height="56"> |
 
 ### Villains
 
 | Dragon | Dracula | Skeleton |
 |:---:|:---:|:---:|
-| ![Dragon](src/main/resources/images/v_dragon.png) | ![Dracula](src/main/resources/images/v_dracula.png) | ![Skeleton](src/main/resources/images/v_skeleton.png) |
+| <img src="src/main/resources/images/svg/v_dragon.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/v_dracula.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/v_skeleton.svg" width="56" height="56"> |
 
 ### Artifacts
 
 | Weapon | Armor | Helm |
 |:---:|:---:|:---:|
-| ![Weapon](src/main/resources/images/a_weapon.png) | ![Armor](src/main/resources/images/a_armor.png) | ![Helm](src/main/resources/images/a_helm.png) |
+| <img src="src/main/resources/images/svg/a_weapon.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/a_armor.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/a_helm.svg" width="56" height="56"> |
 
 ### Battle
 
 | Fight | Fight 2 | Lose |
 |:---:|:---:|:---:|
-| ![Fight](src/main/resources/images/fight_1.png) | ![Fight 2](src/main/resources/images/fight_2.png) | ![Lose](src/main/resources/images/lose.png) |
+| <img src="src/main/resources/images/svg/fight_1.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/fight_2.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/lose.svg" width="56" height="56"> |
