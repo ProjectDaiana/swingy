@@ -11,6 +11,10 @@ import javax.swing.JTextField;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.List;
+import com.swingy.view.HeroStats;
 
 public class UIFactory {
     public enum Style {
@@ -21,12 +25,12 @@ public class UIFactory {
     }
 
     public void applyTextStyle(JLabel label, Typography.Style style) {
-        label.setFont(label.getFont().deriveFont(style.weight, style.size));
+        label.setFont(Typography.BASE_FONT.deriveFont(style.weight, style.size));
         label.setForeground(style.color);
     }
 
     public void applyTitleStyle(JLabel label, float size) {
-        label.setFont(label.getFont().deriveFont(Font.BOLD, size));
+        label.setFont(Typography.BASE_FONT.deriveFont(Font.BOLD, size));
     }
 
     public void configureScreenPanel(JPanel panel) {
@@ -59,7 +63,7 @@ public class UIFactory {
         JTextField textField = new JTextField(columns);
         // switch (style) {
         // case FIELD -> {
-        textField.setBackground(ColorPalette.DARK_GRAY);
+        textField.setBackground(Color.DARK_GRAY);
         textField.setBorder(BorderFactory.createLineBorder(ColorPalette.WHITE, 1));
         textField.setForeground(ColorPalette.WHITE);
         // textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 16f));
@@ -76,13 +80,59 @@ public class UIFactory {
         // case SELECTOR -> {
         selector.setBackground(ColorPalette.DARK_GRAY);
         selector.setBorder(BorderFactory.createLineBorder(ColorPalette.WHITE, 1));
-        selector.setForeground(new Color(35, 35, 35));
+        selector.setForeground(ColorPalette.BLACK);
         selector.setFont(selector.getFont().deriveFont(Font.PLAIN, 16f));
         // }
         // default -> throw new IllegalArgumentException("Unsupported selector style: "
         // + style);
         // }
         return selector;
+    }
+
+    public JPanel createHeroDetailsBar(HeroStats hero) {
+        List<String> equipped = new ArrayList<>();
+        if (!hero.weapon().equals("none"))
+            equipped.add("Weapon " + hero.weapon());
+        if (!hero.armor().equals("none"))
+            equipped.add("Armor " + hero.armor());
+        if (!hero.helm().equals("none"))
+            equipped.add("Helm " + hero.helm());
+        String equipmentText = equipped.isEmpty() ? "Equipment: none" : String.join("  ·  ", equipped);
+
+        JLabel[] cells = {
+                createStatCell("Level " + hero.level(), Typography.Style.STAT_ACCENT, true),
+                createStatCell(hero.name(), true),
+                createStatCell(hero.type(), true),
+                createStatCell("Experience " + hero.xp(), true),
+                createStatCell("Attack " + hero.attack(), true),
+                createStatCell("Defense " + hero.defense(), true),
+                createStatCell("Hit Points " + hero.hitPoints(), true),
+                createStatCell(equipmentText, false)
+        };
+
+        JPanel bar = new JPanel(new GridLayout(1, cells.length, 0, 0));
+        bar.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+        bar.setBackground(ColorPalette.BLACK);
+        bar.setOpaque(true);
+        for (JLabel cell : cells)
+            bar.add(cell);
+
+        return bar;
+    }
+
+    public JLabel createStatCell(String text, boolean withRightSeparator) {
+        return createStatCell(text, Typography.Style.STAT, withRightSeparator);
+    }
+
+    public JLabel createStatCell(String text, Typography.Style style, boolean withRightSeparator) {
+        JLabel lbl = new JLabel(text, JLabel.CENTER);
+        applyTextStyle(lbl, style);
+        javax.swing.border.Border inner = BorderFactory.createEmptyBorder(4, 8, 4, 8);
+        javax.swing.border.Border outer = withRightSeparator
+                ? BorderFactory.createMatteBorder(0, 0, 0, 1, Color.DARK_GRAY)
+                : BorderFactory.createEmptyBorder();
+        lbl.setBorder(BorderFactory.createCompoundBorder(outer, inner));
+        return lbl;
     }
 
     public static final int ICON_WIDTH = 48;
