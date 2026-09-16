@@ -113,10 +113,11 @@ public class GUIView implements GameView {
         JLabel heroTitle = new JLabel("You need a Hero");
         uiFactory.applyTextStyle(heroTitle, Typography.Style.H1);
 
-        JButton createHeroButton = uiFactory.createButton("Create New Hero", UIFactory.Style.PRIMARY);
+        JButton createHeroButton = uiFactory.createButton("Create New Hero", UIFactory.Style.SECONDARY);
         createHeroButton.addActionListener(e -> buildHeroCreationScreen());
 
         JButton loadHeroButton = uiFactory.createButton("Select Existing Hero", UIFactory.Style.SECONDARY);
+        loadHeroButton.setEnabled(!loadedHeroes.isEmpty());
         loadHeroButton.addActionListener(e -> buildHeroSelectionScreen());
 
         heroPanel.add(heroTitle, centeredConstraints(0, 20));
@@ -269,7 +270,6 @@ public class GUIView implements GameView {
                 }
                 System.out.println("Updating map for hero position: (" + state.heroX() + ", " + state.heroY() + ")");
                 updateGrid(state);
-                updateHeroDetailsBar();
             }
             gamePanel.revalidate();
             gamePanel.repaint();
@@ -302,13 +302,13 @@ public class GUIView implements GameView {
     }
 
     private void initHeroDetailsBar(HeroStats stats) {
-        statLevel = uiFactory.createStatCell("Level " + stats.level(), Typography.Style.STAT_ACCENT, true);
-        JLabel statName = uiFactory.createStatCell(stats.name(), true);
-        JLabel statType = uiFactory.createStatCell(stats.type(), true);
-        statXp = uiFactory.createStatCell("Experience " + stats.xp(), true);
-        statAttack = uiFactory.createStatCell("Attack " + stats.attack(), true);
-        statDefense = uiFactory.createStatCell("Defense " + stats.defense(), true);
-        statHp = uiFactory.createStatCell("Hit Points " + stats.hitPoints(), true);
+        statLevel = uiFactory.createStatCell("Lv " + stats.level(), Typography.Style.STAT_ACCENT_BOLD, true);
+        JLabel statName = uiFactory.createStatCell(stats.name(), Typography.Style.STAT_ACCENT_BOLD, true);
+        JLabel statType = uiFactory.createStatCell(stats.type(), Typography.Style.STAT_ACCENT_BOLD, true);
+        statXp = uiFactory.createStatCell("XP: " + stats.xp(), Typography.Style.STAT, true);
+        statAttack = uiFactory.createStatCell("ATK: " + stats.attack(), Typography.Style.STAT, true);
+        statDefense = uiFactory.createStatCell("DEF: " + stats.defense(), Typography.Style.STAT, true);
+        statHp = uiFactory.createStatCell("HP: " + stats.hitPoints(), Typography.Style.STAT, true);
         statEquipment = uiFactory.createStatCell(buildEquipmentText(stats), false);
 
         heroDetailsBar = new JPanel(new GridLayout(1, 8, 0, 0));
@@ -322,11 +322,11 @@ public class GUIView implements GameView {
 
     private void updateHeroDetailsBar() {
         HeroStats stats = controller.getHeroStats();
-        statLevel.setText("Level " + stats.level());
-        statXp.setText("Experience " + stats.xp());
-        statAttack.setText("Attack " + stats.attack());
-        statDefense.setText("Defense " + stats.defense());
-        statHp.setText("Hit Points " + stats.hitPoints());
+        statLevel.setText("Lv " + stats.level());
+        statXp.setText("XP " + stats.xp());
+        statAttack.setText("ATK " + stats.attack());
+        statDefense.setText("DEF " + stats.defense());
+        statHp.setText("HP " + stats.hitPoints());
         statEquipment.setText(buildEquipmentText(stats));
     }
 
@@ -404,6 +404,8 @@ public class GUIView implements GameView {
                 }
                 if (direction != null) {
                     controller.onMove(direction);
+                    if (gameStarted)
+                        updateHeroDetailsBar();
                     drawMap(controller.getMapState());
                     if (controller.isAtBorder()) {
                         controller.endGame();
@@ -451,14 +453,14 @@ public class GUIView implements GameView {
                 }
                 int response = JOptionPane.showConfirmDialog(frame,
                         "<html>You won this battle!<br/>"
-                                + "Found a " + result.getArtifact().getType() + "<br/>"
-                                + statName + " will increase by +" + result.getArtifact().getValue() + "<br/>"
+                                + "Found a " + result.getArtifact().getType().toString().toLowerCase() + "<br/>"
+                                + statName + " will increase by " + result.getArtifact().getValue() + "<br/>"
                                 + "Pick it up?</html>",
                         "Victory", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, artifactIcon);
                 pendingArtifactPickup = (response == JOptionPane.YES_OPTION);
             } else {
                 JOptionPane.showMessageDialog(frame, "You won this battle!", "Victory",
-                        JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.INFORMATION_MESSAGE, heroIcon);
                 pendingArtifactPickup = false;
             }
         } else {
@@ -506,7 +508,6 @@ public class GUIView implements GameView {
         fightTimer = new Timer(300, e -> {
             setCellIcon(x, y, showFirst[0] ? icon1 : icon2);
             showFirst[0] = !showFirst[0];
-            System.out.println("ANIMATION RUNNING at position: (" + x + ", " + y + ")");
         });
         System.out.println("Starting fight animation at position: (" + x + ", " + y + ")");
         fightTimer.start();
