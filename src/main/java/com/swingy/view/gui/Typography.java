@@ -16,8 +16,9 @@ public final class Typography {
         H2(18f, Font.PLAIN, ColorPalette.LIGHT_GRAY),
         BODY(16f, Font.PLAIN, ColorPalette.LIGHT_GRAY),
         STAT(14f, Font.PLAIN, ColorPalette.LIGHT_GRAY),
-        STAT_ACCENT(14f, Font.PLAIN, ColorPalette.ACCENT);
-
+        STAT_BOLD(14f, Font.BOLD, ColorPalette.LIGHT_GRAY),
+        STAT_ACCENT(14f, Font.PLAIN, ColorPalette.ACCENT),
+        STAT_ACCENT_BOLD(14f, Font.BOLD, ColorPalette.ACCENT);
         public final float size;
         public final int weight;
         public final Color color;

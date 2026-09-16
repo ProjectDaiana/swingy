@@ -43,14 +43,15 @@ public class UIFactory {
     public JButton createButton(String label, Style style) {
         JButton button = new JButton(label);
         button.setFocusPainted(false);
+        button.setMargin(new java.awt.Insets(10, 20, 10, 20));
         switch (style) {
             case PRIMARY -> {
-                button.setBackground(new Color(32, 99, 155));
+                button.setBackground(ColorPalette.ACCENT);
                 button.setForeground(ColorPalette.BLACK);
                 button.setFont(button.getFont().deriveFont(Font.BOLD, 16f));
             }
             case SECONDARY -> {
-                button.setBackground(new Color(235, 235, 235));
+                button.setBackground(ColorPalette.LIGHT_GRAY);
                 button.setForeground(ColorPalette.BLACK);
                 button.setFont(button.getFont().deriveFont(Font.PLAIN, 16f));
             }
