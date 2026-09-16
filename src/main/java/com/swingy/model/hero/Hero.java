@@ -108,7 +108,7 @@ public class Hero {
         return level * 1000 + (level - 1) * (level - 1) * 450;
     }
 
-    public void levelUp() {
+    private void levelUp() {
         level++;
         attack += HeroType.getAttackGrowth();
         defense += HeroType.getDefenseGrowth();
