@@ -75,7 +75,7 @@ public class Controller {
     }
 
     public void onFlee(Hero hero, GameMap map) {
-        view.showMessage("You chose to flee from the battle.");
+        // view.showMessage("You chose to flee from the battle.");
         if (Battle.tryToRun()) {
             view.showMessage("You successfully fled from the battle.");
             map.moveHeroToPrevPosition();
@@ -120,13 +120,15 @@ public class Controller {
 
     public void onArtifactPickup(boolean pickup, Hero hero, Artifact artifact) {
         if (pickup) {
-            view.showMessage("You picked up the artifact!");
+            // view.showMessage("You picked up the artifact!");
             hero.equipArtifact(artifact);
-            view.showMessage("You equipped the artifact: " + artifact.getType().toString() + " with value: "
-                    + artifact.getValue());
-        } else {
-            view.showMessage("You left the artifact behind.");
+            // view.showMessage("You equipped the artifact: " +
+            // artifact.getType().toString() + " with value: "
+            // + artifact.getValue());
         }
+        // } else {
+        // view.showMessage("You left the artifact behind.");
+        // }
     }
 
     public void onArtifactLeave(Hero hero, Artifact artifact) {
@@ -136,7 +138,7 @@ public class Controller {
     private void applyBattleResult(Hero hero, BattleResult battleResult) {
         switch (battleResult.getResult()) {
             case WIN -> {
-                view.showMessage("You won the battle! You gained " + battleResult.getXPGained() + " XP.");
+              //  view.showMessage("You won the battle! You gained " + battleResult.getXPGained() + " XP.");
                 hero.gainXp(battleResult.getXPGained());
                 Artifact artifact = battleResult.getArtifact();
                 if (artifact != null) {

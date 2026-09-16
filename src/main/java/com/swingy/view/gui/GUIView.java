@@ -52,7 +52,6 @@ public class GUIView implements GameView {
 
     private JPanel heroDetailsBar;
     private JLabel statLevel, statXp, statAttack, statDefense, statHp, statEquipment;
-    private boolean pendingArtifactPickup;
     private boolean gameStarted = false;
 
     public GUIView() {
@@ -234,10 +233,13 @@ public class GUIView implements GameView {
 
     @Override
     public boolean askArtifactPickup(ArtifactStats artifactStats) {
-        MapState current = controller.getMapState();
-        setCellIcon(current.heroX(), current.heroY(), iconLoader.artifact(artifactStats.type()));
-        System.out.println("[ARTIFACT] Player chose: " + (pendingArtifactPickup ? "PICK UP" : "LEAVE"));
-        return pendingArtifactPickup;
+        ImageIcon artifactIcon = iconLoader.artifact(artifactStats.type());
+        int response = JOptionPane.showConfirmDialog(frame,
+                "<html>Found a " + artifactStats.type().toLowerCase() + "<br/>"
+                        + artifactStats.description() + " will increase by " + artifactStats.value() + "<br/>"
+                        + "Pick it up?</html>",
+                "Artifact Found", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, artifactIcon);
+        return response == JOptionPane.YES_OPTION;
     }
 
     @Override
@@ -420,7 +422,9 @@ public class GUIView implements GameView {
 
     @Override
     public void showMessage(String message) {
-        System.out.println("[MSG] " + message);
+        JOptionPane.showMessageDialog(frame, message, "Message",
+                JOptionPane.PLAIN_MESSAGE, iconLoader.fight(1));
+
     }
 
     @Override
@@ -435,34 +439,8 @@ public class GUIView implements GameView {
         boolean won = result.getResult() == BattleResult.Result.WIN;
         if (won) {
             baseIcons[y][x] = null;
-            System.out.println("[BATTLE] WIN at (" + x + ", " + y + ")" +
-                    (result.getArtifact() != null ? " | artifact: " + result.getArtifact().getType() : ""));
-            if (result.getArtifact() != null) {
-                ImageIcon artifactIcon = iconLoader.artifact(result.getArtifact().getType());
-                String statName;
-                switch (result.getArtifact().getType()) {
-                    case WEAPON:
-                        statName = "Attack";
-                        break;
-                    case ARMOR:
-                        statName = "Defense";
-                        break;
-                    default:
-                        statName = "Hit Points";
-                        break;
-                }
-                int response = JOptionPane.showConfirmDialog(frame,
-                        "<html>You won this battle!<br/>"
-                                + "Found a " + result.getArtifact().getType().toString().toLowerCase() + "<br/>"
-                                + statName + " will increase by " + result.getArtifact().getValue() + "<br/>"
-                                + "Pick it up?</html>",
-                        "Victory", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, artifactIcon);
-                pendingArtifactPickup = (response == JOptionPane.YES_OPTION);
-            } else {
-                JOptionPane.showMessageDialog(frame, "You won this battle!", "Victory",
-                        JOptionPane.INFORMATION_MESSAGE, heroIcon);
-                pendingArtifactPickup = false;
-            }
+            JOptionPane.showMessageDialog(frame, "You won this battle!", "Victory",
+                    JOptionPane.PLAIN_MESSAGE, heroIcon);
         } else {
             System.out.println("[BATTLE] LOSE at (" + x + ", " + y + ")");
             ImageIcon loseIcon = iconLoader.lose();
