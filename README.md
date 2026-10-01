@@ -16,19 +16,7 @@ mvn clean package
 java -jar target/swingy.jar console
 java -jar target/swingy.jar gui
 ```
-  public JTextField createTextField(Style style) {
-        JTextField textField = new JTextField(0);
-        textField.setOpaque(true);
-        textField.setBackground(style.background);
-        textField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ColorPalette.WHITE, 1),
-                BorderFactory.createEmptyBorder(10, 20, 10, 20)));
-        textField.setForeground(style.foreground);
-        textField.setCaretColor(style.foreground);
-        textField.setFont(textField.getFont().deriveFont(style.weight, style.size));
-        textField.setPreferredSize(new Dimension(COMPONENT_WIDTH, textField.getPreferredSize().height));
-        return textField;
-    }
+
 Requires Java 17+.
 
 ---
@@ -142,8 +130,8 @@ The GUI uses a small design system centralised in three files. All visual decisi
 
 Built with reusable components via `UIFactory`, icons cached and preloaded through `IconLoader`, and design tokens centralised in `ColorPalette` and `Typography`. To add a new styled selector, call `uiFactory.createSelector(values, Style.SELECTOR)` and optionally set a renderer via `heroIconRenderer()` for hero-type items. Both screens below share the same selector and icon renderer.
 
-| Hero selection | Hero creation |
-|:---:|:---:|
+|                                  Hero selection                                   |                                   Hero creation                                    |
+| :-------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------: |
 | ![Hero selection screen](src/main/resources/images/screenshots/hero_selector.png) | ![Hero creation screen](src/main/resources/images/screenshots/player_selector.png) |
 
 ## Sprites
@@ -152,24 +140,24 @@ All icons are scaled to 48 × 48 px by `IconLoader` at startup and cached — no
 
 ### Heroes
 
-| Warrior | Rogue | Wizard |
-|:---:|:---:|:---:|
+|                                    Warrior                                     |                                    Rogue                                     |                                    Wizard                                     |
+| :----------------------------------------------------------------------------: | :--------------------------------------------------------------------------: | :---------------------------------------------------------------------------: |
 | <img src="src/main/resources/images/svg/h_warrior.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/h_rogue.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/h_wizard.svg" width="56" height="56"> |
 
 ### Villains
 
-| Dragon | Dracula | Skeleton |
-|:---:|:---:|:---:|
+|                                    Dragon                                     |                                    Dracula                                     |                                    Skeleton                                     |
+| :---------------------------------------------------------------------------: | :----------------------------------------------------------------------------: | :-----------------------------------------------------------------------------: |
 | <img src="src/main/resources/images/svg/v_dragon.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/v_dracula.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/v_skeleton.svg" width="56" height="56"> |
 
 ### Artifacts
 
-| Weapon | Armor | Helm |
-|:---:|:---:|:---:|
+|                                    Weapon                                     |                                    Armor                                     |                                    Helm                                     |
+| :---------------------------------------------------------------------------: | :--------------------------------------------------------------------------: | :-------------------------------------------------------------------------: |
 | <img src="src/main/resources/images/svg/a_weapon.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/a_armor.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/a_helm.svg" width="56" height="56"> |
 
 ### Battle
 
-| Fight | Fight 2 | Lose |
-|:---:|:---:|:---:|
+|                                    Fight                                     |                                   Fight 2                                    |                                   Lose                                    |
+| :--------------------------------------------------------------------------: | :--------------------------------------------------------------------------: | :-----------------------------------------------------------------------: |
 | <img src="src/main/resources/images/svg/fight_1.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/fight_2.svg" width="56" height="56"> | <img src="src/main/resources/images/svg/lose.svg" width="56" height="56"> |
