@@ -5,11 +5,30 @@ A Java RPG built for 42 school. Play through a text-based console or a Swing GUI
 ## Build & Run
 
 ```bash
+# with Maven installed
 mvn clean package
+
+# with the Maven wrapper (no Maven required)
+./mvnw clean package
+```
+
+```bash
 java -jar target/swingy.jar console
 java -jar target/swingy.jar gui
 ```
-
+  public JTextField createTextField(Style style) {
+        JTextField textField = new JTextField(0);
+        textField.setOpaque(true);
+        textField.setBackground(style.background);
+        textField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(ColorPalette.WHITE, 1),
+                BorderFactory.createEmptyBorder(10, 20, 10, 20)));
+        textField.setForeground(style.foreground);
+        textField.setCaretColor(style.foreground);
+        textField.setFont(textField.getFont().deriveFont(style.weight, style.size));
+        textField.setPreferredSize(new Dimension(COMPONENT_WIDTH, textField.getPreferredSize().height));
+        return textField;
+    }
 Requires Java 17+.
 
 ---
@@ -119,9 +138,17 @@ The GUI uses a small design system centralised in three files. All visual decisi
 
 ---
 
+## Interface
+
+Built with reusable components via `UIFactory`, icons cached and preloaded through `IconLoader`, and design tokens centralised in `ColorPalette` and `Typography`. To add a new styled selector, call `uiFactory.createSelector(values, Style.SELECTOR)` and optionally set a renderer via `heroIconRenderer()` for hero-type items. Both screens below share the same selector and icon renderer.
+
+| Hero selection | Hero creation |
+|:---:|:---:|
+| ![Hero selection screen](src/main/resources/images/screenshots/hero_selector.png) | ![Hero creation screen](src/main/resources/images/screenshots/player_selector.png) |
+
 ## Sprites
 
-All icons are vector art displayed at 56 × 56 px.
+All icons are scaled to 48 × 48 px by `IconLoader` at startup and cached — no I/O during gameplay.
 
 ### Heroes
 
