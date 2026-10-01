@@ -1,16 +1,19 @@
 package com.swingy.view.gui;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.UIManager;
 import com.swingy.controller.Controller;
 import com.swingy.model.DirectionType;
 import com.swingy.model.artifact.Artifact;
@@ -20,15 +23,19 @@ import com.swingy.view.GameView;
 import com.swingy.view.HeroStats;
 import com.swingy.view.MapState;
 import com.swingy.view.ArtifactStats;
-import java.awt.CardLayout;
-import java.awt.GridBagConstraints;
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-import java.awt.Color;
-import java.awt.image.BufferedImage;
 
 public class GUIView implements GameView {
     Controller controller;
@@ -128,41 +135,56 @@ public class GUIView implements GameView {
         cardLayout.show(cardPanel, "heroChoice");
     }
 
-    private JComboBox<HeroStats> buildHeroDropdown() {
-        HeroStats[] options = loadedHeroes.toArray(new HeroStats[0]);
-        JComboBox<HeroStats> selector = uiFactory.createSelector(options, UIFactory.Style.SELECTOR);
-        selector.setRenderer(new javax.swing.DefaultListCellRenderer() {
+    private DefaultListCellRenderer heroIconRenderer() {
+        return new DefaultListCellRenderer() {
             @Override
-            public java.awt.Component getListCellRendererComponent(
-                    javax.swing.JList<?> list, Object value, int index, boolean isSelected, boolean hasFocus) {
+            public Component getListCellRendererComponent(
+                    JList<?> list, Object value, int index, boolean isSelected, boolean hasFocus) {
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, hasFocus);
+                String text = null, type = null;
                 if (value instanceof HeroStats h) {
-                    lbl.setText(h.name() + ", Level" + h.level());
-                    int iconSize = 24;
-                    int pad = 2;
-                    int total = iconSize + pad * 2;
-                    BufferedImage composite = new BufferedImage(total, total, BufferedImage.TYPE_INT_ARGB);
-                    java.awt.Graphics2D g = composite.createGraphics();
-                    g.setColor(ColorPalette.DARK_GRAY);
-                    g.fillRect(0, 0, total, total);
-                    g.drawImage(iconLoader.hero(h.type()).getImage(), pad, pad, iconSize, iconSize, null);
-                    g.dispose();
-                    lbl.setIcon(new ImageIcon(composite));
+                    text = h.name() + ", Level " + h.level();
+                    type = h.type();
+                } else if (value instanceof HeroType t) {
+                    text = t.toString();
+                    type = t.toString();
+                }
+                if (text != null) {
+                    lbl.setText(text);
+                    lbl.setIcon(buildHeroIcon(type));
                     lbl.setIconTextGap(10);
                 }
                 if (index == -1) {
-                    lbl.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+                    lbl.setBorder(BorderFactory.createEmptyBorder());
                     lbl.setOpaque(true);
                     lbl.setBackground(ColorPalette.DARK_GRAY);
                 } else {
-                    lbl.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 20, 10, 20));
+                    lbl.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
                     lbl.setOpaque(isSelected);
-                    if (isSelected) lbl.setBackground(ColorPalette.ACCENT);
+                    if (isSelected)
+                        lbl.setBackground(ColorPalette.ACCENT);
                 }
                 lbl.setForeground(isSelected ? ColorPalette.BLACK : ColorPalette.WHITE);
                 return lbl;
             }
-        });
+        };
+    }
+
+    private ImageIcon buildHeroIcon(String type) {
+        int iconSize = 24, pad = 2, total = iconSize + pad * 2;
+        BufferedImage composite = new BufferedImage(total, total, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = composite.createGraphics();
+        g.setColor(ColorPalette.DARK_GRAY);
+        g.fillRect(0, 0, total, total);
+        g.drawImage(iconLoader.hero(type).getImage(), pad, pad, iconSize, iconSize, null);
+        g.dispose();
+        return new ImageIcon(composite);
+    }
+
+    private JComboBox<HeroStats> buildHeroDropdown() {
+        HeroStats[] options = loadedHeroes.toArray(new HeroStats[0]);
+        JComboBox<HeroStats> selector = uiFactory.createSelector(options, UIFactory.Style.SELECTOR);
+        selector.setRenderer(heroIconRenderer());
         return selector;
     }
 
@@ -171,7 +193,7 @@ public class GUIView implements GameView {
         uiFactory.configureScreenPanel(heroNamePanel);
 
         JLabel title = new JLabel("Select a Hero");
-        uiFactory.applyTextStyle(title, Typography.Style.H1);
+        uiFactory.applyTextStyle(title, Typography.Style.H2);
         heroNamePanel.add(title, centeredConstraints(0, 20));
 
         JComboBox<HeroStats> heroSelector = buildHeroDropdown();
@@ -196,13 +218,14 @@ public class GUIView implements GameView {
         uiFactory.configureScreenPanel(heroNamePanel);
 
         JLabel heroNameTitle = new JLabel("Name your hero");
-        uiFactory.applyTextStyle(heroNameTitle, Typography.Style.H1);
+        uiFactory.applyTextStyle(heroNameTitle, Typography.Style.H2);
 
-        JTextField heroNameField = uiFactory.createTextField(18, UIFactory.Style.FIELD);
+        JTextField heroNameField = uiFactory.createTextField(UIFactory.Style.FIELD);
         JLabel heroTypeTitle = new JLabel("Choose hero class");
         uiFactory.applyTextStyle(heroTypeTitle, Typography.Style.H2);
 
         JComboBox<HeroType> heroTypeSelector = uiFactory.createSelector(HeroType.values(), UIFactory.Style.SELECTOR);
+        heroTypeSelector.setRenderer(heroIconRenderer());
 
         JButton submitButton = uiFactory.createButton("Continue", UIFactory.Style.PRIMARY);
         submitButton.addActionListener(e -> {
@@ -405,34 +428,34 @@ public class GUIView implements GameView {
     }
 
     private void applyDialogStyle() {
-        javax.swing.UIManager.put("OptionPane.background", ColorPalette.BLACK);
-        javax.swing.UIManager.put("Panel.background", ColorPalette.BLACK);
-        javax.swing.UIManager.put("OptionPane.messageForeground", ColorPalette.LIGHT_GRAY);
-        javax.swing.UIManager.put("OptionPane.messageFont", Typography.BASE_FONT.deriveFont(16f));
-        javax.swing.UIManager.put("Button.background", ColorPalette.ACCENT);
-        javax.swing.UIManager.put("Button.foreground", ColorPalette.BLACK);
-        javax.swing.UIManager.put("Button.font", Typography.BASE_FONT.deriveFont(14f));
+        UIManager.put("OptionPane.background", ColorPalette.BLACK);
+        UIManager.put("Panel.background", ColorPalette.BLACK);
+        UIManager.put("OptionPane.messageForeground", ColorPalette.LIGHT_GRAY);
+        UIManager.put("OptionPane.messageFont", Typography.BASE_FONT.deriveFont(16f));
+        UIManager.put("Button.background", ColorPalette.ACCENT);
+        UIManager.put("Button.foreground", ColorPalette.BLACK);
+        UIManager.put("Button.font", Typography.BASE_FONT.deriveFont(14f));
     }
 
     private void setupKeyBindings() {
         frame.setFocusable(true);
-        frame.addKeyListener(new java.awt.event.KeyAdapter() {
+        frame.addKeyListener(new KeyAdapter() {
             @Override
-            public void keyPressed(java.awt.event.KeyEvent e) {
+            public void keyPressed(KeyEvent e) {
                 if (!gameStarted)
                     return;
                 DirectionType direction = null;
                 switch (e.getKeyCode()) {
-                    case java.awt.event.KeyEvent.VK_UP:
+                    case KeyEvent.VK_UP:
                         direction = DirectionType.NORTH;
                         break;
-                    case java.awt.event.KeyEvent.VK_DOWN:
+                    case KeyEvent.VK_DOWN:
                         direction = DirectionType.SOUTH;
                         break;
-                    case java.awt.event.KeyEvent.VK_LEFT:
+                    case KeyEvent.VK_LEFT:
                         direction = DirectionType.WEST;
                         break;
-                    case java.awt.event.KeyEvent.VK_RIGHT:
+                    case KeyEvent.VK_RIGHT:
                         direction = DirectionType.EAST;
                         break;
                 }

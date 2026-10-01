@@ -22,11 +22,25 @@ import java.util.List;
 import com.swingy.view.HeroStats;
 
 public class UIFactory {
+    public static final int COMPONENT_WIDTH = 260;
+
     public enum Style {
-        PRIMARY,
-        SECONDARY,
-        FIELD,
-        SELECTOR
+        PRIMARY(ColorPalette.ACCENT, ColorPalette.BLACK, Font.BOLD, 16f),
+        SECONDARY(ColorPalette.LIGHT_GRAY, ColorPalette.BLACK, Font.PLAIN, 16f),
+        FIELD(ColorPalette.DARK_GRAY, ColorPalette.WHITE, Font.PLAIN, 16f),
+        SELECTOR(ColorPalette.DARK_GRAY, ColorPalette.WHITE, Font.PLAIN, 16f);
+
+        public final Color background;
+        public final Color foreground;
+        public final int weight;
+        public final float size;
+
+        Style(Color background, Color foreground, int weight, float size) {
+            this.background = background;
+            this.foreground = foreground;
+            this.weight = weight;
+            this.size = size;
+        }
     }
 
     public void applyTextStyle(JLabel label, Typography.Style style) {
@@ -49,28 +63,24 @@ public class UIFactory {
         JButton button = new JButton(label);
         button.setFocusPainted(false);
         button.setMargin(new Insets(10, 20, 10, 20));
-        button.setPreferredSize(new Dimension(260, button.getPreferredSize().height));
-        switch (style) {
-            case PRIMARY -> {
-                button.setBackground(ColorPalette.ACCENT);
-                button.setForeground(ColorPalette.BLACK);
-                button.setFont(button.getFont().deriveFont(Font.BOLD, 16f));
-            }
-            case SECONDARY -> {
-                button.setBackground(ColorPalette.LIGHT_GRAY);
-                button.setForeground(ColorPalette.BLACK);
-                button.setFont(button.getFont().deriveFont(Font.PLAIN, 16f));
-            }
-            default -> throw new IllegalArgumentException("Unsupported button style: " + style);
-        }
+        button.setPreferredSize(new Dimension(COMPONENT_WIDTH, button.getPreferredSize().height));
+        button.setBackground(style.background);
+        button.setForeground(style.foreground);
+        button.setFont(button.getFont().deriveFont(style.weight, style.size));
         return button;
     }
 
-    public JTextField createTextField(int columns, Style style) {
-        JTextField textField = new JTextField(columns);
-        textField.setBackground(Color.DARK_GRAY);
-        textField.setBorder(BorderFactory.createLineBorder(ColorPalette.WHITE, 1));
-        textField.setForeground(ColorPalette.WHITE);
+    public JTextField createTextField(Style style) {
+        JTextField textField = new JTextField(0);
+        textField.setOpaque(true);
+        textField.setBackground(style.background);
+        textField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(ColorPalette.WHITE, 1),
+                BorderFactory.createEmptyBorder(10, 20, 10, 20)));
+        textField.setForeground(style.foreground);
+        textField.setCaretColor(style.foreground);
+        textField.setFont(textField.getFont().deriveFont(style.weight, style.size));
+        textField.setPreferredSize(new Dimension(COMPONENT_WIDTH, textField.getPreferredSize().height));
         return textField;
     }
 
@@ -95,14 +105,14 @@ public class UIFactory {
             }
 
         });
-        selector.setBackground(ColorPalette.BLACK);
+        selector.setBackground(style.background);
         selector.setFocusable(false);
         selector.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(ColorPalette.WHITE, 1),
                 BorderFactory.createEmptyBorder(10, 20, 10, 20)));
-        selector.setForeground(ColorPalette.WHITE);
-        selector.setFont(selector.getFont().deriveFont(Font.PLAIN, 16f));
-        selector.setPreferredSize(new Dimension(260, selector.getPreferredSize().height));
+        selector.setForeground(style.foreground);
+        selector.setFont(selector.getFont().deriveFont(style.weight, style.size));
+        selector.setPreferredSize(new Dimension(COMPONENT_WIDTH, selector.getPreferredSize().height));
 
         return selector;
     }
