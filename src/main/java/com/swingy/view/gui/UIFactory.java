@@ -8,10 +8,15 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JComponent;
+import javax.swing.border.Border;
+import javax.swing.plaf.basic.BasicComboBoxUI;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
 import com.swingy.view.HeroStats;
@@ -43,7 +48,8 @@ public class UIFactory {
     public JButton createButton(String label, Style style) {
         JButton button = new JButton(label);
         button.setFocusPainted(false);
-        button.setMargin(new java.awt.Insets(10, 20, 10, 20));
+        button.setMargin(new Insets(10, 20, 10, 20));
+        button.setPreferredSize(new Dimension(260, button.getPreferredSize().height));
         switch (style) {
             case PRIMARY -> {
                 button.setBackground(ColorPalette.ACCENT);
@@ -62,31 +68,42 @@ public class UIFactory {
 
     public JTextField createTextField(int columns, Style style) {
         JTextField textField = new JTextField(columns);
-        // switch (style) {
-        // case FIELD -> {
         textField.setBackground(Color.DARK_GRAY);
         textField.setBorder(BorderFactory.createLineBorder(ColorPalette.WHITE, 1));
         textField.setForeground(ColorPalette.WHITE);
-        // textField.setFont(textField.getFont().deriveFont(Font.PLAIN, 16f));
-        // }
-        // default -> throw new IllegalArgumentException("Unsupported text field style:
-        // " + style);
-        // }
         return textField;
     }
 
     public <T> JComboBox<T> createSelector(T[] values, Style style) {
         JComboBox<T> selector = new JComboBox<>(values);
-        // switch (style) {
-        // case SELECTOR -> {
-        selector.setBackground(ColorPalette.DARK_GRAY);
-        selector.setBorder(BorderFactory.createLineBorder(ColorPalette.WHITE, 1));
-        selector.setForeground(ColorPalette.BLACK);
+        selector.setUI(new BasicComboBoxUI() {
+            @Override
+            protected JButton createArrowButton() {
+                JButton btn = new JButton("▼");
+                btn.setBackground(ColorPalette.DARK_GRAY);
+                btn.setForeground(ColorPalette.WHITE);
+                btn.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
+                btn.setFocusPainted(false);
+                btn.setContentAreaFilled(false);
+                return btn;
+            }
+
+            @Override
+            public void installUI(JComponent c) {
+                super.installUI(c);
+                listBox.setBackground(ColorPalette.DARK_GRAY);
+            }
+
+        });
+        selector.setBackground(ColorPalette.BLACK);
+        selector.setFocusable(false);
+        selector.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(ColorPalette.WHITE, 1),
+                BorderFactory.createEmptyBorder(10, 20, 10, 20)));
+        selector.setForeground(ColorPalette.WHITE);
         selector.setFont(selector.getFont().deriveFont(Font.PLAIN, 16f));
-        // }
-        // default -> throw new IllegalArgumentException("Unsupported selector style: "
-        // + style);
-        // }
+        selector.setPreferredSize(new Dimension(260, selector.getPreferredSize().height));
+
         return selector;
     }
 
@@ -128,8 +145,8 @@ public class UIFactory {
     public JLabel createStatCell(String text, Typography.Style style, boolean withRightSeparator) {
         JLabel lbl = new JLabel(text, JLabel.CENTER);
         applyTextStyle(lbl, style);
-        javax.swing.border.Border inner = BorderFactory.createEmptyBorder(4, 8, 4, 8);
-        javax.swing.border.Border outer = withRightSeparator
+        Border inner = BorderFactory.createEmptyBorder(4, 8, 4, 8);
+        Border outer = withRightSeparator
                 ? BorderFactory.createMatteBorder(0, 0, 0, 1, Color.DARK_GRAY)
                 : BorderFactory.createEmptyBorder();
         lbl.setBorder(BorderFactory.createCompoundBorder(outer, inner));

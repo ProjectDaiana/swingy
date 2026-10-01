@@ -28,6 +28,7 @@ import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 
 public class GUIView implements GameView {
     Controller controller;
@@ -127,11 +128,42 @@ public class GUIView implements GameView {
         cardLayout.show(cardPanel, "heroChoice");
     }
 
-    private JComboBox<String> buildHeroDropdown() {
-        String[] options = loadedHeroes.stream()
-                .map(h -> h.name() + " (" + h.type().toUpperCase() + "), L" + h.level())
-                .toArray(String[]::new);
-        return uiFactory.createSelector(options, UIFactory.Style.SELECTOR);
+    private JComboBox<HeroStats> buildHeroDropdown() {
+        HeroStats[] options = loadedHeroes.toArray(new HeroStats[0]);
+        JComboBox<HeroStats> selector = uiFactory.createSelector(options, UIFactory.Style.SELECTOR);
+        selector.setRenderer(new javax.swing.DefaultListCellRenderer() {
+            @Override
+            public java.awt.Component getListCellRendererComponent(
+                    javax.swing.JList<?> list, Object value, int index, boolean isSelected, boolean hasFocus) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, hasFocus);
+                if (value instanceof HeroStats h) {
+                    lbl.setText(h.name() + ", Level" + h.level());
+                    int iconSize = 24;
+                    int pad = 2;
+                    int total = iconSize + pad * 2;
+                    BufferedImage composite = new BufferedImage(total, total, BufferedImage.TYPE_INT_ARGB);
+                    java.awt.Graphics2D g = composite.createGraphics();
+                    g.setColor(ColorPalette.DARK_GRAY);
+                    g.fillRect(0, 0, total, total);
+                    g.drawImage(iconLoader.hero(h.type()).getImage(), pad, pad, iconSize, iconSize, null);
+                    g.dispose();
+                    lbl.setIcon(new ImageIcon(composite));
+                    lbl.setIconTextGap(10);
+                }
+                if (index == -1) {
+                    lbl.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+                    lbl.setOpaque(true);
+                    lbl.setBackground(ColorPalette.DARK_GRAY);
+                } else {
+                    lbl.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 20, 10, 20));
+                    lbl.setOpaque(isSelected);
+                    if (isSelected) lbl.setBackground(ColorPalette.ACCENT);
+                }
+                lbl.setForeground(isSelected ? ColorPalette.BLACK : ColorPalette.WHITE);
+                return lbl;
+            }
+        });
+        return selector;
     }
 
     private void buildHeroSelectionScreen() {
@@ -142,7 +174,7 @@ public class GUIView implements GameView {
         uiFactory.applyTextStyle(title, Typography.Style.H1);
         heroNamePanel.add(title, centeredConstraints(0, 20));
 
-        JComboBox<String> heroSelector = buildHeroDropdown();
+        JComboBox<HeroStats> heroSelector = buildHeroDropdown();
         JButton selectButton = uiFactory.createButton("Select", UIFactory.Style.PRIMARY);
         selectButton.addActionListener(e -> {
             int index = heroSelector.getSelectedIndex();
@@ -491,4 +523,9 @@ public class GUIView implements GameView {
         fightTimer.start();
     }
 
+    public boolean askNewGame(String message) {
+        int response = JOptionPane.showConfirmDialog(frame, message,
+                "New Game", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        return response == JOptionPane.YES_OPTION;
+    }
 }
