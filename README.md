@@ -13,8 +13,8 @@ mvn clean package
 ```
 
 ```bash
-java -jar target/swingy.jar console
-java -jar target/swingy.jar gui
+java -jar swingy.jar console
+java -jar swingy.jar gui
 ```
 
 Requires Java 17+.
