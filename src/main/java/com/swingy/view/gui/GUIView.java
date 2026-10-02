@@ -183,7 +183,7 @@ public class GUIView implements GameView {
 
     private JComboBox<HeroStats> buildHeroDropdown() {
         HeroStats[] options = loadedHeroes.toArray(new HeroStats[0]);
-        JComboBox<HeroStats> selector = uiFactory.createSelector(options, UIFactory.Style.SELECTOR);
+        JComboBox<HeroStats> selector = uiFactory.createSelector(options);
         selector.setRenderer(heroIconRenderer());
         return selector;
     }
@@ -220,11 +220,11 @@ public class GUIView implements GameView {
         JLabel heroNameTitle = new JLabel("Name your hero");
         uiFactory.applyTextStyle(heroNameTitle, Typography.Style.H2);
 
-        JTextField heroNameField = uiFactory.createTextField(UIFactory.Style.FIELD);
+        JTextField heroNameField = uiFactory.createTextField();
         JLabel heroTypeTitle = new JLabel("Choose hero class");
         uiFactory.applyTextStyle(heroTypeTitle, Typography.Style.H2);
 
-        JComboBox<HeroType> heroTypeSelector = uiFactory.createSelector(HeroType.values(), UIFactory.Style.SELECTOR);
+        JComboBox<HeroType> heroTypeSelector = uiFactory.createSelector(HeroType.values());
         heroTypeSelector.setRenderer(heroIconRenderer());
 
         JButton submitButton = uiFactory.createButton("Continue", UIFactory.Style.PRIMARY);

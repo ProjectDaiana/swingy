@@ -1,6 +1,6 @@
 # Swingy
 
-A Java RPG built for 42 school. Play through a text-based console or a Swing GUI — same game logic, two different views.
+A Java roguelike game. Play through a text-based console or a Swing GUI — same game logic, two different views.
 
 ## Build & Run
 
@@ -75,7 +75,7 @@ com.swingy/
 │   │   └── ConsoleView.java
 │   └── gui/
 │       ├── GUIView.java
-│       ├── UIFactory.java       — Factory pattern for styled components
+│       ├── UIFactory.java       — helper class for styled component creation
 │       ├── IconLoader.java      — icon cache, preloading
 │       ├── ColorPalette.java    — color tokens
 │       └── Typography.java      — text style tokens
@@ -102,17 +102,20 @@ The GUI uses a small design system centralised in three files. All visual decisi
 
 ### Typography scale
 
-| Style         | Size | Weight | Color      |
-| ------------- | ---- | ------ | ---------- |
-| `TITLE`       | 28px | Bold   | LIGHT_GRAY |
-| `H1`          | 24px | Bold   | LIGHT_GRAY |
-| `H2`          | 18px | Bold   | LIGHT_GRAY |
-| `STAT`        | 12px | Plain  | LIGHT_GRAY |
-| `STAT_ACCENT` | 12px | Bold   | ACCENT     |
+| Style              | Size | Weight | Color      |
+| ------------------ | ---- | ------ | ---------- |
+| `TITLE`            | 28px | Plain  | LIGHT_GRAY |
+| `H1`               | 24px | Plain  | LIGHT_GRAY |
+| `H2`               | 18px | Plain  | LIGHT_GRAY |
+| `BODY`             | 16px | Plain  | LIGHT_GRAY |
+| `STAT`             | 14px | Plain  | LIGHT_GRAY |
+| `STAT_BOLD`        | 14px | Bold   | LIGHT_GRAY |
+| `STAT_ACCENT`      | 14px | Plain  | ACCENT     |
+| `STAT_ACCENT_BOLD` | 14px | Bold   | ACCENT     |
 
 ### UIFactory
 
-`UIFactory` is the single entry point to create styled components following the **Factory pattern**. Nothing in `GUIView` creates raw Swing components directly — it always goes through the factory. Supported styles: `PRIMARY`, `SECONDARY`, `FIELD`, `SELECTOR`.
+`UIFactory` is a helper class that centralizes styled component creation. Nothing in `GUIView` creates raw Swing components directly — it always goes through the factory. `createButton` takes an explicit `Style` (`PRIMARY` or `SECONDARY`); `createTextField` and `createSelector` use a fixed style internally and take no style parameter.
 
 ---
 
@@ -128,7 +131,7 @@ The GUI uses a small design system centralised in three files. All visual decisi
 
 ## Interface
 
-Built with reusable components via `UIFactory`, icons cached and preloaded through `IconLoader`, and design tokens centralised in `ColorPalette` and `Typography`. To add a new styled selector, call `uiFactory.createSelector(values, Style.SELECTOR)` and optionally set a renderer via `heroIconRenderer()` for hero-type items. Both screens below share the same selector and icon renderer.
+Built with reusable components via `UIFactory`, icons cached and preloaded through `IconLoader`, and design tokens centralised in `ColorPalette` and `Typography`. To add a new styled selector, call `uiFactory.createSelector(values)` and optionally set a renderer via `heroIconRenderer()` for hero-type items. Both screens below share the same selector and icon renderer.
 
 |                                  Hero selection                                   |                                   Hero creation                                    |
 | :-------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------: |

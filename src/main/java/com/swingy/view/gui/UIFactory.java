@@ -70,7 +70,8 @@ public class UIFactory {
         return button;
     }
 
-    public JTextField createTextField(Style style) {
+    public JTextField createTextField() {
+        Style style = Style.FIELD;
         JTextField textField = new JTextField(0);
         textField.setOpaque(true);
         textField.setBackground(style.background);
@@ -84,7 +85,8 @@ public class UIFactory {
         return textField;
     }
 
-    public <T> JComboBox<T> createSelector(T[] values, Style style) {
+    public <T> JComboBox<T> createSelector(T[] values) {
+        Style style = Style.SELECTOR;
         JComboBox<T> selector = new JComboBox<>(values);
         selector.setUI(new BasicComboBoxUI() {
             @Override
