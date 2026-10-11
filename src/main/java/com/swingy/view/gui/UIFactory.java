@@ -155,7 +155,7 @@ public class UIFactory {
     }
 
     public JLabel createStatCell(String text, Typography.Style style, boolean withRightSeparator) {
-        JLabel lbl = new JLabel(text, JLabel.CENTER);
+        JLabel lbl = new JLabel(text, JLabel.LEFT);
         applyTextStyle(lbl, style);
         Border inner = BorderFactory.createEmptyBorder(4, 8, 4, 8);
         Border outer = withRightSeparator

@@ -19,6 +19,7 @@ import com.swingy.model.DirectionType;
 import com.swingy.model.artifact.Artifact;
 import com.swingy.model.battle.BattleResult;
 import com.swingy.model.hero.HeroType;
+import com.swingy.view.Banner;
 import com.swingy.view.GameView;
 import com.swingy.view.HeroStats;
 import com.swingy.view.MapState;
@@ -28,13 +29,10 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
 import java.awt.GridLayout;
-import java.awt.Insets;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.List;
 
 public class GUIView implements GameView {
@@ -82,32 +80,20 @@ public class GUIView implements GameView {
         iconLoader = new IconLoader();
 
         frame.setContentPane(cardPanel);
-        frame.setSize(800, 600);
+        frame.setSize(960, 720);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
         setupKeyBindings();
     }
 
-    private GridBagConstraints centeredConstraints(int row, int bottomInset) {
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.gridx = 0;
-        constraints.gridy = row;
-        constraints.anchor = GridBagConstraints.CENTER;
-        constraints.insets = new Insets(0, 0, bottomInset, 0);
-        return constraints;
-    }
-
     private void buildStartScreen() {
         uiFactory.configureScreenPanel(startPanel);
-
-        JLabel title = new JLabel("SWINGY");
-        uiFactory.applyTextStyle(title, Typography.Style.TITLE);
 
         JButton startButton = uiFactory.createButton("START", UIFactory.Style.PRIMARY);
         startButton.addActionListener(e -> cardLayout.show(cardPanel, "hero"));
 
-        startPanel.add(title, centeredConstraints(0, 20));
-        startPanel.add(startButton, centeredConstraints(1, 0));
+        startPanel.add(buildTitleLabel(), ViewUtils.centeredConstraints(0, 20));
+        startPanel.add(startButton, ViewUtils.centeredConstraints(1, 0));
         startPanel.revalidate();
         startPanel.repaint();
         cardLayout.show(cardPanel, "start");
@@ -127,9 +113,9 @@ public class GUIView implements GameView {
         loadHeroButton.setEnabled(!loadedHeroes.isEmpty());
         loadHeroButton.addActionListener(e -> buildHeroSelectionScreen());
 
-        heroPanel.add(heroTitle, centeredConstraints(0, 20));
-        heroPanel.add(createHeroButton, centeredConstraints(1, 12));
-        heroPanel.add(loadHeroButton, centeredConstraints(2, 0));
+        heroPanel.add(heroTitle, ViewUtils.centeredConstraints(0, 20));
+        heroPanel.add(createHeroButton, ViewUtils.centeredConstraints(1, 12));
+        heroPanel.add(loadHeroButton, ViewUtils.centeredConstraints(2, 0));
         heroPanel.revalidate();
         heroPanel.repaint();
         cardLayout.show(cardPanel, "heroChoice");
@@ -146,8 +132,8 @@ public class GUIView implements GameView {
                     text = h.name() + ", Level " + h.level();
                     type = h.type();
                 } else if (value instanceof HeroType t) {
-                    text = t.toString();
-                    type = t.toString();
+                    text = ViewUtils.toTitleCase(t.name());
+                    type = t.name();
                 }
                 if (text != null) {
                     lbl.setText(text);
@@ -194,7 +180,7 @@ public class GUIView implements GameView {
 
         JLabel title = new JLabel("Select a Hero");
         uiFactory.applyTextStyle(title, Typography.Style.H2);
-        heroNamePanel.add(title, centeredConstraints(0, 20));
+        heroNamePanel.add(title, ViewUtils.centeredConstraints(0, 20));
 
         JComboBox<HeroStats> heroSelector = buildHeroDropdown();
         JButton selectButton = uiFactory.createButton("Select", UIFactory.Style.PRIMARY);
@@ -206,8 +192,8 @@ public class GUIView implements GameView {
             drawMap(controller.getMapState());
         });
 
-        heroNamePanel.add(heroSelector, centeredConstraints(1, 12));
-        heroNamePanel.add(selectButton, centeredConstraints(2, 0));
+        heroNamePanel.add(heroSelector, ViewUtils.centeredConstraints(1, 12));
+        heroNamePanel.add(selectButton, ViewUtils.centeredConstraints(2, 0));
         heroNamePanel.revalidate();
         heroNamePanel.repaint();
         cardLayout.show(cardPanel, "heroName");
@@ -239,11 +225,11 @@ public class GUIView implements GameView {
             }
         });
 
-        heroNamePanel.add(heroNameTitle, centeredConstraints(0, 20));
-        heroNamePanel.add(heroNameField, centeredConstraints(1, 12));
-        heroNamePanel.add(heroTypeTitle, centeredConstraints(2, 12));
-        heroNamePanel.add(heroTypeSelector, centeredConstraints(3, 12));
-        heroNamePanel.add(submitButton, centeredConstraints(4, 0));
+        heroNamePanel.add(heroNameTitle, ViewUtils.centeredConstraints(0, 20));
+        heroNamePanel.add(heroNameField, ViewUtils.centeredConstraints(1, 12));
+        heroNamePanel.add(heroTypeTitle, ViewUtils.centeredConstraints(2, 12));
+        heroNamePanel.add(heroTypeSelector, ViewUtils.centeredConstraints(3, 12));
+        heroNamePanel.add(submitButton, ViewUtils.centeredConstraints(4, 0));
         heroNamePanel.revalidate();
         heroNamePanel.repaint();
         cardLayout.show(cardPanel, "heroName");
@@ -263,7 +249,7 @@ public class GUIView implements GameView {
                 "Hit Points: " + stats.hitPoints() + "</html>");
         uiFactory.applyTitleStyle(heroDetails, 18f);
 
-        heroNamePanel.add(heroDetails, centeredConstraints(0, 20));
+        heroNamePanel.add(heroDetails, ViewUtils.centeredConstraints(0, 20));
         cardLayout.show(cardPanel, "heroName");
     }
 
@@ -313,11 +299,15 @@ public class GUIView implements GameView {
         SwingUtilities.invokeLater(() -> {
             if (!gameStarted) {
                 gamePanel.removeAll();
-                gamePanel.setLayout(new BorderLayout(0, 0));
+                gamePanel.setLayout(new BorderLayout(0, 12));
                 gamePanel.setBackground(ColorPalette.BLACK);
                 gamePanel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
                 initHeroDetailsBar(controller.getHeroStats());
-                gamePanel.add(heroDetailsBar, BorderLayout.NORTH);
+                JPanel northPanel = new JPanel(new BorderLayout(0, 8));
+                northPanel.setBackground(ColorPalette.BLACK);
+                northPanel.add(buildTitleLabel(), BorderLayout.NORTH);
+                northPanel.add(heroDetailsBar, BorderLayout.SOUTH);
+                gamePanel.add(northPanel, BorderLayout.NORTH);
                 gamePanel.add(initMap(state), BorderLayout.CENTER);
                 gameStarted = true;
             } else {
@@ -347,44 +337,45 @@ public class GUIView implements GameView {
         lastDrawnHeroY = newY;
     }
 
-    private String buildEquipmentText(HeroStats stats) {
-        List<String> equipped = new ArrayList<>();
-        if (!stats.weapon().equals("none"))
-            equipped.add("Weapon " + stats.weapon());
-        if (!stats.armor().equals("none"))
-            equipped.add("Armor " + stats.armor());
-        if (!stats.helm().equals("none"))
-            equipped.add("Helm " + stats.helm());
-        return equipped.isEmpty() ? "Equipment: none" : String.join("  ·  ", equipped);
+    private JLabel buildTitleLabel() {
+        JLabel lbl = new JLabel(ViewUtils.ansiToHtml(Banner.ART_ANSI), JLabel.CENTER);
+        lbl.setBackground(ColorPalette.BLACK);
+        return lbl;
     }
 
     private void initHeroDetailsBar(HeroStats stats) {
-        statLevel = uiFactory.createStatCell("Lv " + stats.level(), Typography.Style.STAT_ACCENT_BOLD, true);
-        JLabel statName = uiFactory.createStatCell(stats.name(), Typography.Style.STAT_ACCENT_BOLD, true);
-        JLabel statType = uiFactory.createStatCell(stats.type(), Typography.Style.STAT_ACCENT_BOLD, true);
-        statXp = uiFactory.createStatCell("XP: " + stats.xp(), Typography.Style.STAT, true);
-        statAttack = uiFactory.createStatCell("ATK: " + stats.attack(), Typography.Style.STAT, true);
-        statDefense = uiFactory.createStatCell("DEF: " + stats.defense(), Typography.Style.STAT, true);
-        statHp = uiFactory.createStatCell("HP: " + stats.hitPoints(), Typography.Style.STAT, true);
-        statEquipment = uiFactory.createStatCell(buildEquipmentText(stats), false);
+        statLevel = uiFactory.createStatCell(ViewUtils.statHtml("Lv", stats.level()), Typography.Style.STAT_ACCENT_BOLD, true);
+        JLabel statName = uiFactory.createStatCell(ViewUtils.statHtml("", stats.name()), Typography.Style.STAT_ACCENT_BOLD, true);
+        JLabel statType = uiFactory.createStatCell(ViewUtils.statHtml("", ViewUtils.toTitleCase(stats.type())), Typography.Style.STAT_ACCENT_BOLD, true);
+        statXp = uiFactory.createStatCell(ViewUtils.statHtml("XP", stats.xp()), Typography.Style.STAT, true);
+        statAttack = uiFactory.createStatCell(ViewUtils.statHtml("ATK", stats.attack()), Typography.Style.STAT, true);
+        statDefense = uiFactory.createStatCell(ViewUtils.statHtml("DEF", stats.defense()), Typography.Style.STAT, true);
+        statHp = uiFactory.createStatCell(ViewUtils.statHtml("HP", stats.hitPoints()), Typography.Style.STAT, false);
+        statEquipment = uiFactory.createStatCell(ViewUtils.buildEquipmentText(stats), false);
 
-        heroDetailsBar = new JPanel(new GridLayout(1, 8, 0, 0));
-        heroDetailsBar.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+        JPanel statsRow = new JPanel(new GridLayout(1, 7, 0, 0));
+        statsRow.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.DARK_GRAY));
+        statsRow.setBackground(ColorPalette.BLACK);
+        statsRow.setOpaque(true);
+        for (JLabel cell : new JLabel[] { statLevel, statName, statType, statXp, statAttack, statDefense, statHp })
+            statsRow.add(cell);
+
+        heroDetailsBar = new JPanel(new BorderLayout());
+        heroDetailsBar.setBorder(BorderFactory.createLineBorder(ColorPalette.WHITE));
         heroDetailsBar.setBackground(ColorPalette.BLACK);
         heroDetailsBar.setOpaque(true);
-        for (JLabel cell : new JLabel[] { statLevel, statName, statType, statXp, statAttack, statDefense, statHp,
-                statEquipment })
-            heroDetailsBar.add(cell);
+        heroDetailsBar.add(statsRow, BorderLayout.NORTH);
+        heroDetailsBar.add(statEquipment, BorderLayout.SOUTH);
     }
 
     private void updateHeroDetailsBar() {
         HeroStats stats = controller.getHeroStats();
-        statLevel.setText("Lv " + stats.level());
-        statXp.setText("XP " + stats.xp());
-        statAttack.setText("ATK " + stats.attack());
-        statDefense.setText("DEF " + stats.defense());
-        statHp.setText("HP " + stats.hitPoints());
-        statEquipment.setText(buildEquipmentText(stats));
+        statLevel.setText(ViewUtils.statHtml("Lv", stats.level()));
+        statXp.setText(ViewUtils.statHtml("XP", stats.xp()));
+        statAttack.setText(ViewUtils.statHtml("ATK", stats.attack()));
+        statDefense.setText(ViewUtils.statHtml("DEF", stats.defense()));
+        statHp.setText(ViewUtils.statHtml("HP", stats.hitPoints()));
+        statEquipment.setText(ViewUtils.buildEquipmentText(stats));
     }
 
     private JPanel initMap(MapState map) {
@@ -393,6 +384,7 @@ public class GUIView implements GameView {
 
         gridCells = new JLabel[size][size];
         baseIcons = new ImageIcon[size][size];
+        mapPanel.setBorder(BorderFactory.createLineBorder(ColorPalette.WHITE));
         mapPanel.setBackground(ColorPalette.DARK_GRAY);
         mapPanel.setOpaque(true);
         villainIcons = iconLoader.allVillains();
@@ -402,7 +394,12 @@ public class GUIView implements GameView {
                 JLabel cell = new JLabel();
                 cell.setHorizontalAlignment(JLabel.CENTER);
                 cell.setVerticalAlignment(JLabel.CENTER);
-                cell.setBorder(BorderFactory.createDashedBorder(Color.DARK_GRAY, 1f, 4f, 2f, false));
+                int top = (y == 0) ? 0 : 1;
+                int left = (x == 0) ? 0 : 1;
+                cell.setBorder(BorderFactory.createMatteBorder(top, left, 0, 0, Color.DARK_GRAY));
+                boolean isEdge = (x == 0 || x == size - 1 || y == 0 || y == size - 1);
+                cell.setOpaque(true);
+                cell.setBackground(isEdge ? ColorPalette.DARK_GRAY : ColorPalette.BLACK);
 
                 if (x == map.heroX() && y == map.heroY()) {
                     cell.setIcon(heroIcon);
