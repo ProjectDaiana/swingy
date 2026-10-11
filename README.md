@@ -1,6 +1,19 @@
-# Swingy
+<pre align="center">
+▄▄▓ ▄   ▄ ▄ ▀▄ ▄ ▄▄▓ ▄ ▄
+▀ ▄ █ ▀ █ █ █ ▀█ █ ▄ ▀▓█
+▀▓▒ ▀▓ ▀▓ ▀ ▀  ▒ ▀▓▒ ▀▓▒
+</pre>
 
 A Java roguelike game. Play through a text-based console or a Swing GUI — same game logic, two different views.
+
+---
+
+- [Build & Run](#build--run)
+- [Architecture](#architecture)
+- [Design System](#design-system)
+- [Gameplay Rules](#gameplay-rules)
+- [Interface](#interface)
+- [Sprites](#sprites)
 
 ## Build & Run
 
@@ -97,8 +110,8 @@ The GUI uses a small design system centralised in three files. All visual decisi
 | `BLACK`      | `#111111` | Screen background                  |
 | `DARK_GRAY`  | `#151515` | Map grid, text fields, selectors   |
 | `LIGHT_GRAY` | `#EBEBEB` | All text labels                    |
-| `WHITE`      | `#FFFFFF` | Cell borders                       |
-| `ACCENT`     | `#20639B` | Primary buttons, highlighted stats |
+| `WHITE`      | `#FFFFFF` | Cell borders, stat labels          |
+| `ACCENT`     | `#D8D23E` | Primary buttons, highlighted stats |
 
 ### Typography scale
 
@@ -131,11 +144,25 @@ The GUI uses a small design system centralised in three files. All visual decisi
 
 ## Interface
 
-Built with reusable components via `UIFactory`, icons cached and preloaded through `IconLoader`, and design tokens centralised in `ColorPalette` and `Typography`. To add a new styled selector, call `uiFactory.createSelector(values)` and optionally set a renderer via `heroIconRenderer()` for hero-type items. Both screens below share the same selector and icon renderer.
+Built with reusable components via `UIFactory`, icons cached and preloaded through `IconLoader`, and design tokens centralised in `ColorPalette` and `Typography`. To add a new styled selector, call `uiFactory.createSelector(values)` and optionally set a renderer via `heroIconRenderer()` for hero-type items.
+
+### Hero setup
 
 |                                  Hero selection                                   |                                   Hero creation                                    |
 | :-------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------: |
 | ![Hero selection screen](src/main/resources/images/screenshots/hero_selector.png) | ![Hero creation screen](src/main/resources/images/screenshots/player_selector.png) |
+
+### Gameplay
+
+<p align="center"><b>Battle encounter</b></p>
+<p align="center">
+  <img src="src/main/resources/images/screenshots/dialog_fight.png" width="60%">
+</p>
+
+<p align="center"><b>Artifact pickup</b></p>
+<p align="center">
+  <img src="src/main/resources/images/screenshots/dialog_pickup.png" width="60%">
+</p>
 
 ## Sprites
 
