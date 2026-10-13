@@ -34,6 +34,7 @@ public class Hero {
     @Min(value = 1, message = "Hit points must be at least 1")
     private int hitPoints;
 
+    private boolean defeated = false;
     private final Map<ArtifactType, Artifact> equipped = new EnumMap<>(ArtifactType.class);
 
     Hero(String name, HeroType HeroType) {
@@ -97,11 +98,11 @@ public class Hero {
     }
 
     public void dies() {
-        this.hitPoints = 0;
+        this.defeated = true;
     }
 
     public boolean isDefeated() {
-        return this.hitPoints <= 0;
+        return this.defeated;
     }
 
     int xpToNextLevel() {
