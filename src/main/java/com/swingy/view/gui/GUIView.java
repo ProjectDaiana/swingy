@@ -16,6 +16,7 @@ import javax.swing.Timer;
 import javax.swing.UIManager;
 import com.swingy.controller.Controller;
 import com.swingy.model.DirectionType;
+import com.swingy.model.GameResult;
 import com.swingy.model.artifact.Artifact;
 import com.swingy.model.battle.BattleResult;
 import com.swingy.model.hero.HeroType;
@@ -100,6 +101,7 @@ public class GUIView implements GameView {
     }
 
     private void buildHeroChoiceScreen() {
+        loadedHeroes = controller.loadHeroes();
         heroPanel.removeAll();
         uiFactory.configureScreenPanel(heroPanel);
 
@@ -118,7 +120,7 @@ public class GUIView implements GameView {
         heroPanel.add(loadHeroButton, ViewUtils.centeredConstraints(2, 0));
         heroPanel.revalidate();
         heroPanel.repaint();
-        cardLayout.show(cardPanel, "heroChoice");
+        cardLayout.show(cardPanel, "hero");
     }
 
     private DefaultListCellRenderer heroIconRenderer() {
@@ -288,10 +290,8 @@ public class GUIView implements GameView {
         this.controller = controller;
         iconLoader.preloadAll();
         loadedHeroes = controller.loadHeroes();
-        // SwingUtilities.invokeLater(() -> {
         buildStartScreen();
         buildHeroChoiceScreen();
-        // });
     }
 
     @Override
@@ -344,18 +344,17 @@ public class GUIView implements GameView {
     }
 
     private void initHeroDetailsBar(HeroStats stats) {
-        statLevel = uiFactory.createStatCell(ViewUtils.statHtml("Lv", stats.level()), Typography.Style.STAT_ACCENT_BOLD, true);
-        JLabel statName = uiFactory.createStatCell(ViewUtils.statHtml("", stats.name()), Typography.Style.STAT_ACCENT_BOLD, true);
-        JLabel statType = uiFactory.createStatCell(ViewUtils.statHtml("", ViewUtils.toTitleCase(stats.type())), Typography.Style.STAT_ACCENT_BOLD, true);
-        statXp = uiFactory.createStatCell(ViewUtils.statHtml("XP", stats.xp()), Typography.Style.STAT, true);
-        statAttack = uiFactory.createStatCell(ViewUtils.statHtml("ATK", stats.attack()), Typography.Style.STAT, true);
-        statDefense = uiFactory.createStatCell(ViewUtils.statHtml("DEF", stats.defense()), Typography.Style.STAT, true);
-        statHp = uiFactory.createStatCell(ViewUtils.statHtml("HP", stats.hitPoints()), Typography.Style.STAT, false);
-        statEquipment = uiFactory.createStatCell(ViewUtils.buildEquipmentText(stats), false);
+        statLevel = uiFactory.createStatCell(ViewUtils.statHtml("Lv", stats.level()), Typography.Style.STAT_ACCENT_BOLD);
+        JLabel statName = uiFactory.createStatCell(ViewUtils.statHtml("", stats.name()), Typography.Style.STAT_ACCENT_BOLD);
+        JLabel statType = uiFactory.createStatCell(ViewUtils.statHtml("", ViewUtils.toTitleCase(stats.type())), Typography.Style.STAT_ACCENT_BOLD);
+        statXp = uiFactory.createStatCell(ViewUtils.statHtml("XP", stats.xp()), Typography.Style.STAT);
+        statAttack = uiFactory.createStatCell(ViewUtils.statHtml("ATK", stats.attack()), Typography.Style.STAT);
+        statDefense = uiFactory.createStatCell(ViewUtils.statHtml("DEF", stats.defense()), Typography.Style.STAT);
+        statHp = uiFactory.createStatCell(ViewUtils.statHtml("HP", stats.hitPoints()), Typography.Style.STAT);
+        statEquipment = uiFactory.createStatCell(ViewUtils.buildEquipmentText(stats));
 
-        JPanel statsRow = new JPanel(new GridLayout(1, 7, 0, 0));
-        statsRow.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.DARK_GRAY));
-        statsRow.setBackground(ColorPalette.BLACK);
+        JPanel statsRow = new JPanel(new GridLayout(1, 7, 1, 0));
+        statsRow.setBackground(ColorPalette.DARK_GRAY);
         statsRow.setOpaque(true);
         for (JLabel cell : new JLabel[] { statLevel, statName, statType, statXp, statAttack, statDefense, statHp })
             statsRow.add(cell);
@@ -457,15 +456,21 @@ public class GUIView implements GameView {
                         break;
                 }
                 if (direction != null) {
-                    controller.onMove(direction);
-                    if (gameStarted)
+                    GameResult result = controller.onMove(direction);
+                    if (result == GameResult.ONGOING) {
                         updateHeroDetailsBar();
-                    drawMap(controller.getMapState());
-                    if (controller.isAtBorder()) {
-                        controller.endGame();
-                    } else if (controller.isHeroDefeated()) {
-                        showGameOver("Your hero was defeated. Game over.");
-                        controller.endGame();
+                        drawMap(controller.getMapState());
+                    } else {
+                        gameStarted = false;
+                        boolean keepPlaying = controller.endGame(result);
+                        if (keepPlaying) {
+                            updateHeroDetailsBar();
+                            lastDrawnHeroX = -1;
+                            lastDrawnHeroY = -1;
+                            drawMap(controller.getMapState());
+                        } else if (result == GameResult.DEFEAT) {
+                            SwingUtilities.invokeLater(() -> buildHeroChoiceScreen());
+                        }
                     }
                 }
             }
@@ -494,10 +499,7 @@ public class GUIView implements GameView {
             JOptionPane.showMessageDialog(frame, "You won this battle!", "Victory",
                     JOptionPane.PLAIN_MESSAGE, heroIcon);
         } else {
-            System.out.println("[BATTLE] LOSE at (" + x + ", " + y + ")");
-            ImageIcon loseIcon = iconLoader.lose();
-            JOptionPane.showMessageDialog(frame, "Your hero was defeated!", "Defeat",
-                    JOptionPane.PLAIN_MESSAGE, loseIcon);
+            baseIcons[y][x] = iconLoader.lose();
         }
         setCellIcon(x, y, resultIcon(won, result.getArtifact()));
     }
@@ -510,7 +512,7 @@ public class GUIView implements GameView {
 
     @Override
     public void showGameOver(String message) {
-        System.out.println("[GAME OVER] " + message);
+        JOptionPane.showMessageDialog(frame, message, "Game Over", JOptionPane.PLAIN_MESSAGE, iconLoader.lose());
     }
 
     public boolean askPlayAgain() {

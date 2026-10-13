@@ -99,7 +99,7 @@ public class GameMap {
         return getVillainAt(x, y) != null;
     }
 
-    public List<int[]> getVillainPositions() { //tal vez simplificar esto y solo devolver un List<int[]> con las posiciones de los villanos y usar el map.getVillainAt(x, y) en el controller para obtener el villano en esa posición
+    public List<int[]> getVillainPositions() {
         List<int[]> positions = new ArrayList<>();
         for (String key : villains.keySet()) {
             String[] parts = key.split(",");
