@@ -26,4 +26,5 @@ public interface GameView {
 
     void showVictory(String message);
 
+    boolean askNewGame(String message);
 }
