@@ -154,15 +154,13 @@ Built with reusable components via `UIFactory`, icons cached and preloaded throu
 
 ### Gameplay
 
-<p align="center"><b>Battle encounter</b></p>
-<p align="center">
-  <img src="src/main/resources/images/screenshots/dialog_fight.png" width="60%">
-</p>
+|                                    Battle encounter                                     |
+| :-------------------------------------------------------------------------------------: |
+| ![Battle encounter](src/main/resources/images/screenshots/dialog_fight.png) |
 
-<p align="center"><b>Artifact pickup</b></p>
-<p align="center">
-  <img src="src/main/resources/images/screenshots/dialog_pickup.png" width="60%">
-</p>
+|                                    Artifact pickup                                      |
+| :-------------------------------------------------------------------------------------: |
+| ![Artifact pickup](src/main/resources/images/screenshots/dialog_pickup.png) |
 
 ## Sprites
 
