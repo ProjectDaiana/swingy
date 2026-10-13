@@ -9,7 +9,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JComponent;
-import javax.swing.border.Border;
 import javax.swing.plaf.basic.BasicComboBoxUI;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -130,19 +129,19 @@ public class UIFactory {
         String equipmentText = equipped.isEmpty() ? "Equipment: none" : String.join("  ·  ", equipped);
 
         JLabel[] cells = {
-                createStatCell("Level " + hero.level(), Typography.Style.STAT_ACCENT, true),
-                createStatCell(hero.name(), true),
-                createStatCell(hero.type(), true),
-                createStatCell("Experience " + hero.xp(), true),
-                createStatCell("Attack " + hero.attack(), true),
-                createStatCell("Defense " + hero.defense(), true),
-                createStatCell("Hit Points " + hero.hitPoints(), true),
-                createStatCell(equipmentText, false)
+                createStatCell("Level " + hero.level(), Typography.Style.STAT_ACCENT),
+                createStatCell(hero.name()),
+                createStatCell(hero.type()),
+                createStatCell("Experience " + hero.xp()),
+                createStatCell("Attack " + hero.attack()),
+                createStatCell("Defense " + hero.defense()),
+                createStatCell("Hit Points " + hero.hitPoints()),
+                createStatCell(equipmentText)
         };
 
-        JPanel bar = new JPanel(new GridLayout(1, cells.length, 0, 0));
+        JPanel bar = new JPanel(new GridLayout(1, cells.length, 1, 0));
         bar.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
-        bar.setBackground(ColorPalette.BLACK);
+        bar.setBackground(ColorPalette.DARK_GRAY);
         bar.setOpaque(true);
         for (JLabel cell : cells)
             bar.add(cell);
@@ -150,18 +149,16 @@ public class UIFactory {
         return bar;
     }
 
-    public JLabel createStatCell(String text, boolean withRightSeparator) {
-        return createStatCell(text, Typography.Style.STAT, withRightSeparator);
+    public JLabel createStatCell(String text) {
+        return createStatCell(text, Typography.Style.STAT);
     }
 
-    public JLabel createStatCell(String text, Typography.Style style, boolean withRightSeparator) {
+    public JLabel createStatCell(String text, Typography.Style style) {
         JLabel lbl = new JLabel(text, JLabel.LEFT);
         applyTextStyle(lbl, style);
-        Border inner = BorderFactory.createEmptyBorder(4, 8, 4, 8);
-        Border outer = withRightSeparator
-                ? BorderFactory.createMatteBorder(0, 0, 0, 1, Color.DARK_GRAY)
-                : BorderFactory.createEmptyBorder();
-        lbl.setBorder(BorderFactory.createCompoundBorder(outer, inner));
+        lbl.setOpaque(true);
+        lbl.setBackground(ColorPalette.BLACK);
+        lbl.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
         return lbl;
     }
 
