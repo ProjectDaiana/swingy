@@ -2,6 +2,7 @@ package com.swingy.model;
 
 public enum GameResult {
     ONGOING,
-    VICTORY,
+    MAP_CLEARED,
+    GAME_WON,
     DEFEAT
 }

@@ -30,6 +30,10 @@ public class Controller {
         this.repository = repository;
     }
 
+    public void setView(GameView view) {
+        this.view = view;
+    }
+
     public List<HeroStats> loadHeroes() {
         heroes = repository.loadHeroes();
         List<HeroStats> heroesStats = new java.util.ArrayList<>();
@@ -62,14 +66,6 @@ public class Controller {
         this.map = new GameMap(this.hero.getLevel());
     }
 
-    public boolean isHeroDefeated() {
-        return hero.isDefeated();
-    }
-
-    public boolean isAtBorder() {
-        return map.isAtBorder();
-    }
-
     public void onFight(Hero hero, GameMap map) {
         resolveBattle(hero, map);
     }
@@ -85,7 +81,7 @@ public class Controller {
         }
     }
 
-    public void onMove(DirectionType direction) {
+    public GameResult onMove(DirectionType direction) {
         switch (direction) {
             case NORTH -> map.moveHero(GameMap.Direction.NORTH);
             case SOUTH -> map.moveHero(GameMap.Direction.SOUTH);
@@ -96,14 +92,32 @@ public class Controller {
             villian = map.getVillainAt(map.getHeroX(), map.getHeroY());
             handleBattle(false, hero, map);
         }
+        if (hero.isDefeated())
+            return GameResult.DEFEAT;
+        if (map.isAtBorder())
+            return hero.getLevel() >= Hero.MAX_LEVEL ? GameResult.GAME_WON : GameResult.MAP_CLEARED;
+        return GameResult.ONGOING;
     }
 
-    public void endGame() {
-        repository.saveHeroes(heroes);
-        GameResult result = hero.isDefeated() ? GameResult.DEFEAT : GameResult.VICTORY;
+    public boolean endGame(GameResult result) {
         switch (result) {
-            case VICTORY -> view.showVictory("Congratulations! You have won the game!");
-            case DEFEAT -> view.showGameOver("Game Over! Your hero has been defeated.");
+            case DEFEAT -> {
+                heroes = repository.loadHeroes();
+                view.showGameOver("Game Over! Your hero has been defeated.\nYou will return to hero selection.");
+                return false;
+            }
+            case GAME_WON -> {
+                repository.saveHeroes(heroes);
+                view.showVictory(hero.getName() + " has reached the pinnacle of power and conquered the realm!");
+                return false;
+            }
+            case MAP_CLEARED -> {
+                repository.saveHeroes(heroes);
+                boolean keepPlaying = view.askNewGame(hero.getName() + " escaped the map!\nContinue to the next level?");
+                if (keepPlaying) this.map = new GameMap(hero.getLevel());
+                return keepPlaying;
+            }
+            default -> { return false; }
         }
     }
 
@@ -118,36 +132,19 @@ public class Controller {
         }
     }
 
-    public void onArtifactPickup(boolean pickup, Hero hero, Artifact artifact) {
-        if (pickup) {
-            // view.showMessage("You picked up the artifact!");
-            hero.equipArtifact(artifact);
-            // view.showMessage("You equipped the artifact: " +
-            // artifact.getType().toString() + " with value: "
-            // + artifact.getValue());
-        }
-        // } else {
-        // view.showMessage("You left the artifact behind.");
-        // }
-    }
-
-    public void onArtifactLeave(Hero hero, Artifact artifact) {
-        view.showMessage("You left the artifact behind.");
-    }
 
     private void applyBattleResult(Hero hero, BattleResult battleResult) {
         switch (battleResult.getResult()) {
             case WIN -> {
-              //  view.showMessage("You won the battle! You gained " + battleResult.getXPGained() + " XP.");
+                int levelBefore = hero.getLevel();
                 hero.gainXp(battleResult.getXPGained());
+                if (hero.getLevel() > levelBefore)
+                    view.showLevelUp(hero.getLevel());
                 Artifact artifact = battleResult.getArtifact();
-                if (artifact != null) {
-                    boolean pickup = view.askArtifactPickup(getArtifactStats(artifact));
-                    onArtifactPickup(pickup, hero, artifact);
-                }
+                if (artifact != null && view.askArtifactPickup(getArtifactStats(artifact)))
+                    hero.equipArtifact(artifact);
             }
             case LOSES -> {
-                view.showMessage("You lost the battle! Your hero has been defeated.");
                 hero.dies();
             }
         }
