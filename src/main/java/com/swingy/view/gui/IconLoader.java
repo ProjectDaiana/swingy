@@ -54,6 +54,10 @@ public class IconLoader {
         return load("/images/lose.png");
     }
 
+    public ImageIcon win() {
+        return load("/images/win.png");
+    }
+
     public void preloadAll() {
         for (HeroType type : HeroType.values())
             hero(type);
@@ -63,5 +67,6 @@ public class IconLoader {
         fight(1);
         fight(2);
         lose();
+        win();
     }
 }
