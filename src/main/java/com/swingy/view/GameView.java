@@ -22,6 +22,8 @@ public interface GameView {
 
     void showBattleResult(BattleResult result);
 
+    void showLevelUp(int newLevel);
+
     void showGameOver(String message);
 
     void showVictory(String message);

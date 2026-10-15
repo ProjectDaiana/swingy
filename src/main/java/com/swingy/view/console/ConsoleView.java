@@ -2,11 +2,13 @@ package com.swingy.view.console;
 
 import com.swingy.controller.Controller;
 import com.swingy.model.hero.HeroType;
+import com.swingy.view.Banner;
 import com.swingy.view.GameView;
 import com.swingy.view.HeroStats;
 import com.swingy.view.MapState;
 import com.swingy.view.ArtifactStats;
 import com.swingy.model.DirectionType;
+import com.swingy.model.GameResult;
 import com.swingy.model.battle.BattleResult;
 import java.util.Scanner;
 import java.util.List;
@@ -20,6 +22,26 @@ public class ConsoleView implements GameView {
 
     @Override
     public void run(Controller controller) {
+        System.out.println(Banner.ART_ANSI);
+        setupHero(controller);
+        while (true) {
+            DirectionType direction = askDirection();
+            GameResult result = controller.onMove(direction);
+            drawMap(controller.getMapState());
+            if (result != GameResult.ONGOING) {
+                boolean keepPlaying = controller.endGame(result);
+                if (keepPlaying) {
+                    showHeroDetails(controller.getHeroStats());
+                    drawMap(controller.getMapState());
+                } else {
+                    System.out.println(Banner.ART_ANSI);
+                    setupHero(controller);
+                }
+            }
+        }
+    }
+
+    private void setupHero(Controller controller) {
         List<HeroStats> heroes = controller.loadHeroes();
         if (askNewHero()) {
             String name = askHeroName();
@@ -31,15 +53,6 @@ public class ConsoleView implements GameView {
         }
         showHeroDetails(controller.getHeroStats());
         drawMap(controller.getMapState());
-        while (true) {
-            if (controller.isHeroDefeated() || controller.isAtBorder()) {
-                controller.endGame();
-                break;
-            }
-            DirectionType direction = askDirection();
-            controller.onMove(direction);
-            drawMap(controller.getMapState());
-        }
     }
 
     @Override
@@ -54,6 +67,7 @@ public class ConsoleView implements GameView {
         System.out.println("Hit Points: " + stats.hitPoints());
     }
 
+    @Override
     public void showBattleResult(BattleResult result) {
         System.out.println("Battle Result: " + result.getResult().toString());
     }
@@ -137,6 +151,7 @@ public class ConsoleView implements GameView {
         System.out.println("A battle begins!");
     }
 
+    @Override
     public boolean askFight() {
         System.out.println("Do you want to fight the villain? (Y/N): ");
         String input = scanner.nextLine().toUpperCase();
@@ -184,14 +199,22 @@ public class ConsoleView implements GameView {
         return false;
     }
 
+    @Override
     public void showMessage(String message) {
         System.out.println(message);
     }
 
+    @Override
+    public void showLevelUp(int newLevel) {
+        System.out.println("*** Level up! You are now level " + newLevel + " ***");
+    }
+
+    @Override
     public void showGameOver(String message) {
         System.out.println(message);
     }
 
+    @Override
     public void showVictory(String message) {
         System.out.println(message);
     }
@@ -202,6 +225,17 @@ public class ConsoleView implements GameView {
         if (!"Y".equals(input) && !"N".equals(input)) {
             System.out.println("Invalid input. Please enter Y or N.");
             return askPlayAgain();
+        }
+        return "Y".equals(input);
+    }
+
+    @Override
+    public boolean askNewGame(String message) {
+        System.out.println(message + " (Y/N): ");
+        String input = scanner.nextLine().toUpperCase();
+        if (!"Y".equals(input) && !"N".equals(input)) {
+            System.out.println("Invalid input. Please enter Y or N.");
+            return askNewGame(message);
         }
         return "Y".equals(input);
     }

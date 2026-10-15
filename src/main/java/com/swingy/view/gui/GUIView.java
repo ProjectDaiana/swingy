@@ -91,7 +91,7 @@ public class GUIView implements GameView {
         uiFactory.configureScreenPanel(startPanel);
 
         JButton startButton = uiFactory.createButton("START", UIFactory.Style.PRIMARY);
-        startButton.addActionListener(e -> cardLayout.show(cardPanel, "hero"));
+        startButton.addActionListener(e -> buildHeroChoiceScreen());
 
         startPanel.add(buildTitleLabel(), ViewUtils.centeredConstraints(0, 20));
         startPanel.add(startButton, ViewUtils.centeredConstraints(1, 0));
@@ -289,9 +289,7 @@ public class GUIView implements GameView {
     public void run(Controller controller) {
         this.controller = controller;
         iconLoader.preloadAll();
-        loadedHeroes = controller.loadHeroes();
         buildStartScreen();
-        buildHeroChoiceScreen();
     }
 
     @Override
@@ -468,8 +466,8 @@ public class GUIView implements GameView {
                             lastDrawnHeroX = -1;
                             lastDrawnHeroY = -1;
                             drawMap(controller.getMapState());
-                        } else if (result == GameResult.DEFEAT) {
-                            SwingUtilities.invokeLater(() -> buildHeroChoiceScreen());
+                        } else {
+                            SwingUtilities.invokeLater(() -> buildStartScreen());
                         }
                     }
                 }
@@ -506,8 +504,13 @@ public class GUIView implements GameView {
 
     @Override
     public void showVictory(String message) {
-        System.out.println("[VICTORY] " + message);
-        JOptionPane.showMessageDialog(null, message);
+        JOptionPane.showMessageDialog(frame, message, "Victory", JOptionPane.PLAIN_MESSAGE, iconLoader.win());
+    }
+
+    @Override
+    public void showLevelUp(int newLevel) {
+        JOptionPane.showMessageDialog(frame, "Level up! You are now level " + newLevel + "!",
+                "Level Up", JOptionPane.PLAIN_MESSAGE, heroIcon);
     }
 
     @Override
@@ -545,9 +548,10 @@ public class GUIView implements GameView {
         fightTimer.start();
     }
 
+    @Override
     public boolean askNewGame(String message) {
         int response = JOptionPane.showConfirmDialog(frame, message,
-                "New Game", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                "New Game", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, heroIcon);
         return response == JOptionPane.YES_OPTION;
     }
 }
