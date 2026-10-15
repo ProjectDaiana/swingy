@@ -34,6 +34,7 @@ public class Hero {
     @Min(value = 1, message = "Hit points must be at least 1")
     private int hitPoints;
 
+    public static final int MAX_LEVEL = 5;
     private boolean defeated = false;
     private final Map<ArtifactType, Artifact> equipped = new EnumMap<>(ArtifactType.class);
 
@@ -117,11 +118,13 @@ public class Hero {
     }
 
     public void gainXp(int amount) {
+        if (level >= MAX_LEVEL) return;
         xp += amount;
-        while (xp >= xpToNextLevel()) {
+        while (level < MAX_LEVEL && xp >= xpToNextLevel()) {
             xp -= xpToNextLevel();
             levelUp();
         }
+        if (level >= MAX_LEVEL) xp = 0;
     }
 
     public void equipArtifact(Artifact artifact) {
