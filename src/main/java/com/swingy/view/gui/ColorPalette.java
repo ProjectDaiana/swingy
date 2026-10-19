@@ -4,7 +4,7 @@ import java.awt.Color;
 
 public final class ColorPalette {
     private ColorPalette() {
-    } // prevent instantiation
+    }
 
     public static final Color BLACK = new Color(17, 17, 17);
     public static final Color DARK_GRAY = new Color(23, 23, 23);

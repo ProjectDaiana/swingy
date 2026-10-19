@@ -17,6 +17,7 @@ import com.swingy.model.hero.HeroType;
 public class FileHeroRepository implements HeroRepository {
     private Path path = Paths.get("heroes.txt");
 
+    @Override
     public void saveHeroes(List<Hero> heroes) {
         StringBuilder toWrite = new StringBuilder(); // not thread safe, use StringBuffer if needed
         for (Hero hero : heroes) {
@@ -38,6 +39,7 @@ public class FileHeroRepository implements HeroRepository {
         }
     }
 
+    @Override
     public List<Hero> loadHeroes() {
         List<Hero> heroes = new ArrayList<>();
         if (!Files.exists(path)) {
