@@ -6,3 +6,9 @@ en.subject.pdf
 swingy_project_plan.md
 CLAUDE.md
 CONTEXT.md
+
+.DS_Store
+**/.DS_Store
+
+*.mv.db
+*.trace.db
