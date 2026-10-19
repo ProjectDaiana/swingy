@@ -6,6 +6,7 @@ import com.swingy.model.hero.HeroType;
 import com.swingy.repository.HeroRepository;
 import com.swingy.model.villain.Villian;
 import com.swingy.view.GameView;
+import com.swingy.view.BattleStats;
 import com.swingy.model.artifact.Artifact;
 import com.swingy.model.battle.Battle;
 import com.swingy.model.battle.BattleResult;
@@ -184,7 +185,10 @@ public class Controller {
         if (battleResult.getResult() == BattleResult.Result.WIN) {
             map.removeVillainAt(map.getHeroX(), map.getHeroY());
         }
-        view.showBattleResult(battleResult);
+        ArtifactStats artifactStats = battleResult.getArtifact() != null
+                ? getArtifactStats(battleResult.getArtifact())
+                : null;
+        view.showBattleResult(new BattleStats(battleResult.getResult().name(), artifactStats));
         applyBattleResult(hero, battleResult);
     }
 

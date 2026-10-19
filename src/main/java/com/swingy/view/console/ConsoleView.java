@@ -9,7 +9,7 @@ import com.swingy.view.MapState;
 import com.swingy.view.ArtifactStats;
 import com.swingy.model.DirectionType;
 import com.swingy.model.GameResult;
-import com.swingy.model.battle.BattleResult;
+import com.swingy.view.BattleStats;
 import java.util.Scanner;
 import java.util.List;
 
@@ -93,8 +93,8 @@ public class ConsoleView implements GameView {
     }
 
     @Override
-    public void showBattleResult(BattleResult result) {
-        System.out.println("Battle Result: " + result.getResult().toString());
+    public void showBattleResult(BattleStats battleStats) {
+        System.out.println("Battle Result: " + battleStats.result());
     }
 
     public boolean askNewHero() {

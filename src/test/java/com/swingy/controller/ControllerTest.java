@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import com.swingy.model.DirectionType;
 import com.swingy.model.GameResult;
-import com.swingy.model.battle.BattleResult;
+import com.swingy.view.BattleStats;
 import com.swingy.model.hero.HeroType;
 import com.swingy.repository.HeroRepository;
 import com.swingy.model.hero.Hero;
@@ -59,7 +59,7 @@ public class ControllerTest {
         }
 
         @Override
-        public void showBattleResult(BattleResult r) {
+        public void showBattleResult(BattleStats r) {
         }
 
         @Override

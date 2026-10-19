@@ -1,6 +1,5 @@
 package com.swingy.view;
 
-import com.swingy.model.battle.BattleResult;
 import com.swingy.controller.Controller;
 
 // because GuiView might need to inherit from 2 diferent classes, we will use an
@@ -20,7 +19,7 @@ public interface GameView {
 
     void showMessage(String message);
 
-    void showBattleResult(BattleResult result);
+    void showBattleResult(BattleStats battleStats);
 
     void showLevelUp(int newLevel);
 

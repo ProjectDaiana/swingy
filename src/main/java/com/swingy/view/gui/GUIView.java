@@ -17,9 +17,8 @@ import javax.swing.UIManager;
 import com.swingy.controller.Controller;
 import com.swingy.model.DirectionType;
 import com.swingy.model.GameResult;
-import com.swingy.model.artifact.Artifact;
-import com.swingy.model.battle.BattleResult;
 import com.swingy.model.hero.HeroType;
+import com.swingy.view.BattleStats;
 import com.swingy.view.Banner;
 import com.swingy.view.GameView;
 import com.swingy.view.HeroStats;
@@ -518,7 +517,7 @@ public class GUIView implements GameView {
     }
 
     @Override
-    public void showBattleResult(BattleResult result) {
+    public void showBattleResult(BattleStats battleStats) {
         if (fightTimer != null) {
             fightTimer.stop();
             fightTimer = null;
@@ -526,7 +525,7 @@ public class GUIView implements GameView {
         MapState current = controller.getMapState();
         int x = current.heroX();
         int y = current.heroY();
-        boolean won = result.getResult() == BattleResult.Result.WIN;
+        boolean won = "WIN".equals(battleStats.result());
         if (won) {
             baseIcons[y][x] = null;
             JOptionPane.showMessageDialog(frame, "You won this battle!", "Victory",
@@ -534,7 +533,7 @@ public class GUIView implements GameView {
         } else {
             baseIcons[y][x] = iconLoader.lose();
         }
-        setCellIcon(x, y, resultIcon(won, result.getArtifact()));
+        setCellIcon(x, y, resultIcon(won, battleStats.artifact()));
     }
 
     @Override
@@ -557,9 +556,9 @@ public class GUIView implements GameView {
         return false;
     }
 
-    private ImageIcon resultIcon(boolean won, Artifact artifact) {
+    private ImageIcon resultIcon(boolean won, ArtifactStats artifact) {
         if (won) {
-            return artifact != null ? iconLoader.artifact(artifact.getType()) : heroIcon;
+            return artifact != null ? iconLoader.artifact(artifact.type()) : heroIcon;
         }
         return iconLoader.lose();
     }
