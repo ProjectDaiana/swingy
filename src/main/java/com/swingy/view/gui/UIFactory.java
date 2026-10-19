@@ -29,7 +29,7 @@ public class UIFactory {
         SECONDARY(ColorPalette.LIGHT_GRAY, ColorPalette.BLACK, Font.PLAIN, 16f),
         FIELD(ColorPalette.DARK_GRAY, ColorPalette.WHITE, Font.PLAIN, 16f),
         SELECTOR(ColorPalette.DARK_GRAY, ColorPalette.WHITE, Font.PLAIN, 16f),
-        TEST(ColorPalette.ACCENT, ColorPalette.BLACK, Font.PLAIN, 13f);
+        TEXT(ColorPalette.ACCENT, ColorPalette.BLACK, Font.PLAIN, 13f);
 
         public final Color background;
         public final Color foreground;
@@ -65,7 +65,7 @@ public class UIFactory {
         button.setFocusPainted(false);
         button.setForeground(style.foreground);
         button.setFont(button.getFont().deriveFont(style.weight, style.size));
-        if (style == Style.TEST) {
+        if (style == Style.TEXT) {
             button.setContentAreaFilled(false);
             button.setBorderPainted(false);
             button.setForeground(style.background);

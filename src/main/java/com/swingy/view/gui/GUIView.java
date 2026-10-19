@@ -323,7 +323,7 @@ public class GUIView implements GameView {
                 gamePanel.setBackground(ColorPalette.BLACK);
                 gamePanel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
                 initHeroDetailsBar(controller.getHeroStats());
-                JButton switchLabel = uiFactory.createButton("⇄ Console View", UIFactory.Style.TEST);
+                JButton switchLabel = uiFactory.createButton("⇄ Console View", UIFactory.Style.TEXT);
                 switchLabel.addActionListener(e -> {
                     controller.requestViewSwitch("console");
                     runLatch.countDown();
