@@ -34,7 +34,7 @@ public class Hero {
     @Min(value = 1, message = "Hit points must be at least 1")
     private int hitPoints;
 
-    public static final int MAX_LEVEL = 5;
+    public static final int MAX_LEVEL = 7;
     private boolean defeated = false;
     private final Map<ArtifactType, Artifact> equipped = new EnumMap<>(ArtifactType.class);
 
