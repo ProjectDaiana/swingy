@@ -26,11 +26,32 @@ mvn clean package
 ```
 
 ```bash
+# file-based persistence (default)
 java -jar swingy.jar console
 java -jar swingy.jar gui
+
+# relational DB persistence (bonus)
+java -jar swingy.jar console --db
+java -jar swingy.jar gui --db
 ```
 
 Requires Java 17+.
+
+```bash
+# run tests
+mvn test
+```
+
+### Inspect the database
+
+```bash
+java -jar ~/.m2/repository/com/h2database/h2/2.2.224/h2-2.2.224.jar
+```
+
+Opens the H2 web console at `http://localhost:8082`. Connect with:
+- **URL:** `jdbc:h2:./swingy-heroes`
+- **User:** `sa`
+- **Password:** *(empty)*
 
 ---
 
@@ -94,7 +115,9 @@ com.swingy/
 │       └── Typography.java      — text style tokens
 └── repository/
     ├── HeroRepository.java      — interface
-    └── FileHeroRepository.java  — text-file persistence (mandatory)
+    ├── FileHeroRepository.java  — text-file persistence (mandatory)
+    ├── DbHeroRepository.java    — relational DB persistence via Hibernate (bonus)
+    └── HeroEntity.java          — JPA-annotated entity, kept separate from model
 ```
 
 ---
