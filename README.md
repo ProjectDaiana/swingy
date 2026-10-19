@@ -47,7 +47,7 @@ mvn test
 ```bash
 java -jar ~/.m2/repository/com/h2database/h2/2.2.224/h2-2.2.224.jar
 # to change port add
--webPorok and t 9090
+-webPort 9090
 ```
 
 Opens the H2 web console at `http://localhost:8082`. Connect with:
@@ -71,7 +71,7 @@ SELECT * FROM HEROES;
 
 ## Architecture
 
-The project follows the **MVC pattern**. The controller drives the game loop and delegates all input/output through a `GameView` interface, which both `ConsoleView` and `GUIView` implement. Hero persistence uses the **Repository pattern** — `HeroRepository` is an interface; `FileHeroRepository` is the concrete implementation. The view receives data exclusively through **DTO records** (`HeroStats`, `MapState`, `ArtifactStats`) — no model objects are ever exposed to the view.
+The project follows the **MVC pattern**. The controller drives the game loop and delegates all input/output through a `GameView` interface, which both `ConsoleView` and `GUIView` implement. Hero persistence uses the **Repository pattern** — `HeroRepository` is an interface; `FileHeroRepository` is the concrete implementation. The view receives data exclusively through **DTO records** (`HeroStats`, `MapState`, `ArtifactStats`, `BattleStats`) — no model objects are ever exposed to the view.
 
 ```
 Main
@@ -87,6 +87,10 @@ Main
 ```
 
 `Battle` is a utility class called statically from inside `Controller` — it has no state of its own.
+
+### Runtime view switching (bonus)
+
+The console and GUI views can be swapped at runtime without closing the game. Type `GUI` in the console or click `⇄ Console View` in the GUI. The active view signals the switch via `controller.requestViewSwitch("gui"|"console")`; `Main` picks it up after `view.run()` returns, creates the new view, and resumes from the same game state.
 
 ### Package layout
 
@@ -119,6 +123,7 @@ com.swingy/
 │   ├── HeroStats.java           — DTO record
 │   ├── MapState.java            — DTO record
 │   ├── ArtifactStats.java       — DTO record
+│   ├── BattleStats.java         — DTO record
 │   ├── console/
 │   │   └── ConsoleView.java
 │   └── gui/
@@ -133,6 +138,17 @@ com.swingy/
     ├── DbHeroRepository.java    — relational DB persistence via Hibernate (bonus)
     └── HeroEntity.java          — JPA-annotated entity, kept separate from model
 ```
+
+### Persistence
+
+Heroes are saved automatically when the map is cleared or the game is won. Two backends are available via the `HeroRepository` interface:
+
+| Backend | Flag | Format |
+|---|---|---|
+| `FileHeroRepository` | _(default)_ | `heroes.txt` — one hero per line, key=value pairs |
+| `DbHeroRepository` | `--db` | H2 relational DB at `./swingy-heroes` via Hibernate |
+
+Artifact slots are stored as integer values (`-1` = not equipped). Heroes are loaded on startup and the full list is re-saved on every persist event.
 
 ---
 
@@ -165,7 +181,7 @@ The GUI uses a small design system centralised in three files. All visual decisi
 
 ### UIFactory
 
-`UIFactory` is a helper class that centralizes styled component creation. Nothing in `GUIView` creates raw Swing components directly — it always goes through the factory. `createButton` takes an explicit `Style` (`PRIMARY` or `SECONDARY`); `createTextField` and `createSelector` use a fixed style internally and take no style parameter.
+`UIFactory` is a helper class that centralizes styled component creation. Nothing in `GUIView` creates raw Swing components directly — it always goes through the factory. `createButton` takes an explicit `Style` (`PRIMARY`, `SECONDARY`, or `TEXT` for text-style link buttons); `createTextField` and `createSelector` use a fixed style internally and take no style parameter.
 
 ---
 
