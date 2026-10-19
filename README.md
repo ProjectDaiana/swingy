@@ -46,12 +46,26 @@ mvn test
 
 ```bash
 java -jar ~/.m2/repository/com/h2database/h2/2.2.224/h2-2.2.224.jar
+# to change port add
+-webPorok and t 9090
 ```
 
 Opens the H2 web console at `http://localhost:8082`. Connect with:
+
 - **URL:** `jdbc:h2:./swingy-heroes`
 - **User:** `sa`
-- **Password:** *(empty)*
+- **Password:** _(empty)_
+
+Or inspect via terminal (run from the `swingy` directory):
+
+```bash
+java -cp ~/.m2/repository/com/h2database/h2/2.2.224/h2-2.2.224.jar org.h2.tools.Shell -url "jdbc:h2:./swingy-heroes" -user sa -password ""
+```
+
+```sql
+SHOW TABLES;
+SELECT * FROM HEROES;
+```
 
 ---
 
@@ -177,12 +191,12 @@ Built with reusable components via `UIFactory`, icons cached and preloaded throu
 
 ### Gameplay
 
-|                                    Battle encounter                                     |
-| :-------------------------------------------------------------------------------------: |
+|                              Battle encounter                               |
+| :-------------------------------------------------------------------------: |
 | ![Battle encounter](src/main/resources/images/screenshots/dialog_fight.png) |
 
-|                                    Artifact pickup                                      |
-| :-------------------------------------------------------------------------------------: |
+|                               Artifact pickup                               |
+| :-------------------------------------------------------------------------: |
 | ![Artifact pickup](src/main/resources/images/screenshots/dialog_pickup.png) |
 
 ## Sprites
