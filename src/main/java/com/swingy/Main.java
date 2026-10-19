@@ -27,15 +27,19 @@ public class Main {
                   return;
             }
 
-            if (viewType.equals("console")) {
-                  System.out.println("Starting in console mode...");
-                  view = new ConsoleView(); // or new GuiView() for GUI
-
-            } else {
-                  System.out.println("Starting in GUI mode...");
-                  view = new GUIView(); // Implement this class for GUI
+            view = createView(viewType);
+            Controller controller = new Controller(view, repository);
+            while (true) {
+                  view.run(controller);
+                  String switchTo = controller.consumePendingViewSwitch();
+                  if (switchTo == null)
+                        break;
+                  view = createView(switchTo);
+                  controller.setView(view);
             }
-            Controller controller = new Controller(view, repository); // test hero and map
-            new Thread(() -> view.run(controller)).start(); // Start the game loop
+      }
+
+      private static GameView createView(String type) {
+            return type.equals("console") ? new ConsoleView() : new GUIView();
       }
 }

@@ -11,6 +11,7 @@ import javax.swing.JTextField;
 import javax.swing.JComponent;
 import javax.swing.plaf.basic.BasicComboBoxUI;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagLayout;
@@ -27,7 +28,8 @@ public class UIFactory {
         PRIMARY(ColorPalette.ACCENT, ColorPalette.BLACK, Font.BOLD, 16f),
         SECONDARY(ColorPalette.LIGHT_GRAY, ColorPalette.BLACK, Font.PLAIN, 16f),
         FIELD(ColorPalette.DARK_GRAY, ColorPalette.WHITE, Font.PLAIN, 16f),
-        SELECTOR(ColorPalette.DARK_GRAY, ColorPalette.WHITE, Font.PLAIN, 16f);
+        SELECTOR(ColorPalette.DARK_GRAY, ColorPalette.WHITE, Font.PLAIN, 16f),
+        TEST(ColorPalette.ACCENT, ColorPalette.BLACK, Font.PLAIN, 13f);
 
         public final Color background;
         public final Color foreground;
@@ -61,11 +63,19 @@ public class UIFactory {
     public JButton createButton(String label, Style style) {
         JButton button = new JButton(label);
         button.setFocusPainted(false);
-        button.setMargin(new Insets(10, 20, 10, 20));
-        button.setPreferredSize(new Dimension(COMPONENT_WIDTH, button.getPreferredSize().height));
-        button.setBackground(style.background);
         button.setForeground(style.foreground);
         button.setFont(button.getFont().deriveFont(style.weight, style.size));
+        if (style == Style.TEST) {
+            button.setContentAreaFilled(false);
+            button.setBorderPainted(false);
+            button.setForeground(style.background);
+            button.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+            button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        } else {
+            button.setMargin(new Insets(10, 20, 10, 20));
+            button.setPreferredSize(new Dimension(COMPONENT_WIDTH, button.getPreferredSize().height));
+            button.setBackground(style.background);
+        }
         return button;
     }
 

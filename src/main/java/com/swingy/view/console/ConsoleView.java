@@ -23,10 +23,20 @@ public class ConsoleView implements GameView {
     @Override
     public void run(Controller controller) {
         System.out.println(Banner.ART_ANSI);
-        setupHero(controller);
+        if (!controller.hasActiveGame()) {
+            setupHero(controller);
+        } else {
+            showHeroDetails(controller.getHeroStats());
+            drawMap(controller.getMapState());
+        }
         while (true) {
             DirectionType direction = askDirection();
+            if (direction == null) {
+                controller.requestViewSwitch("gui");
+                return;
+            }
             GameResult result = controller.onMove(direction);
+            showHeroDetails(controller.getHeroStats());
             drawMap(controller.getMapState());
             if (result != GameResult.ONGOING) {
                 boolean keepPlaying = controller.endGame(result);
@@ -65,6 +75,9 @@ public class ConsoleView implements GameView {
         System.out.println("Attack: " + stats.attack());
         System.out.println("Defense: " + stats.defense());
         System.out.println("Hit Points: " + stats.hitPoints());
+        System.out.println("Weapon: " + stats.weapon());
+        System.out.println("Armor: " + stats.armor());
+        System.out.println("Helm: " + stats.helm());
     }
 
     @Override
@@ -88,7 +101,7 @@ public class ConsoleView implements GameView {
     }
 
     public HeroType askHeroType() {
-        System.out.println("Select hero class (1: Warrior, 2: Mage, 3: Rogue): ");
+        System.out.println("Select hero class (1: Warrior, 2: Wizard, 3: Rogue): ");
         String input = scanner.nextLine();
         if (!input.matches("\\d+")) {
             System.out.println("Only digits are allowed.");
@@ -128,7 +141,7 @@ public class ConsoleView implements GameView {
     }
 
     public DirectionType askDirection() {
-        System.out.println("Enter direction (W/A/S/D): ");
+        System.out.println("Enter direction (W/A/S/D) or 'GUI' to switch view: ");
         String input = scanner.nextLine().toUpperCase();
 
         switch (input) {
@@ -140,6 +153,8 @@ public class ConsoleView implements GameView {
                 return DirectionType.WEST;
             case "D":
                 return DirectionType.EAST;
+            case "GUI":
+                return null;
             default:
                 System.out.println("Invalid direction. Use W/A/S/D.");
                 return askDirection();

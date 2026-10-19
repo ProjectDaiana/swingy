@@ -35,6 +35,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class GUIView implements GameView {
     Controller controller;
@@ -60,6 +61,7 @@ public class GUIView implements GameView {
     private JPanel heroDetailsBar;
     private JLabel statLevel, statXp, statAttack, statDefense, statHp, statEquipment;
     private boolean gameStarted = false;
+    private CountDownLatch runLatch;
 
     public GUIView() {
         applyDialogStyle();
@@ -82,7 +84,14 @@ public class GUIView implements GameView {
 
         frame.setContentPane(cardPanel);
         frame.setSize(960, 720);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        frame.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if (runLatch != null) runLatch.countDown();
+                frame.dispose();
+            }
+        });
         frame.setVisible(true);
         setupKeyBindings();
     }
@@ -258,7 +267,6 @@ public class GUIView implements GameView {
     @Override
     public void onBattleStart() {
         MapState current = controller.getMapState();
-        System.out.println("[BATTLE] Battle started at (" + current.heroX() + ", " + current.heroY() + ")");
         updateGrid(current);
         fightAnimation(current.heroX(), current.heroY());
     }
@@ -270,7 +278,6 @@ public class GUIView implements GameView {
         int response = JOptionPane.showConfirmDialog(frame, "A villain blocks your path!\nDo you want to fight?",
                 "Fight", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, villainIcon);
         boolean fight = response == JOptionPane.YES_OPTION;
-        System.out.println("[BATTLE] Player chose: " + (fight ? "FIGHT" : "FLEE"));
         return fight;
     }
 
@@ -288,8 +295,20 @@ public class GUIView implements GameView {
     @Override
     public void run(Controller controller) {
         this.controller = controller;
+        runLatch = new CountDownLatch(1);
         iconLoader.preloadAll();
-        buildStartScreen();
+        if (controller.hasActiveGame()) {
+            heroIcon = iconLoader.hero(controller.getHeroStats().type());
+            drawMap(controller.getMapState());
+        } else {
+            buildStartScreen();
+        }
+        try {
+            runLatch.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        frame.dispose();
     }
 
     @Override
@@ -301,9 +320,22 @@ public class GUIView implements GameView {
                 gamePanel.setBackground(ColorPalette.BLACK);
                 gamePanel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
                 initHeroDetailsBar(controller.getHeroStats());
+                JButton switchLabel = uiFactory.createButton("⇄ Console View", UIFactory.Style.TEST);
+                switchLabel.addActionListener(e -> {
+                    controller.requestViewSwitch("console");
+                    runLatch.countDown();
+                });
+                JPanel spacer = new JPanel();
+                spacer.setBackground(ColorPalette.BLACK);
+                spacer.setPreferredSize(switchLabel.getPreferredSize());
+                JPanel titleRow = new JPanel(new BorderLayout());
+                titleRow.setBackground(ColorPalette.BLACK);
+                titleRow.add(spacer, BorderLayout.WEST);
+                titleRow.add(buildTitleLabel(), BorderLayout.CENTER);
+                titleRow.add(switchLabel, BorderLayout.EAST);
                 JPanel northPanel = new JPanel(new BorderLayout(0, 8));
                 northPanel.setBackground(ColorPalette.BLACK);
-                northPanel.add(buildTitleLabel(), BorderLayout.NORTH);
+                northPanel.add(titleRow, BorderLayout.NORTH);
                 northPanel.add(heroDetailsBar, BorderLayout.SOUTH);
                 gamePanel.add(northPanel, BorderLayout.NORTH);
                 gamePanel.add(initMap(state), BorderLayout.CENTER);
@@ -313,7 +345,6 @@ public class GUIView implements GameView {
                     fightTimer.stop();
                     fightTimer = null;
                 }
-                System.out.println("Updating map for hero position: (" + state.heroX() + ", " + state.heroY() + ")");
                 updateGrid(state);
             }
             gamePanel.revalidate();
@@ -544,7 +575,6 @@ public class GUIView implements GameView {
             setCellIcon(x, y, showFirst[0] ? icon1 : icon2);
             showFirst[0] = !showFirst[0];
         });
-        System.out.println("Starting fight animation at position: (" + x + ", " + y + ")");
         fightTimer.start();
     }
 

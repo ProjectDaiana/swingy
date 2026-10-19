@@ -24,6 +24,8 @@ public class Controller {
     private List<Hero> heroes;
     private Hero hero;
     private GameMap map;
+    private boolean gameActive;
+    private String pendingViewSwitch = null;
 
     public Controller(GameView view, HeroRepository repository) {
         this.view = view;
@@ -59,11 +61,13 @@ public class Controller {
         this.hero = new HeroBuilder(name, type).build();
         heroes.add(this.hero);
         this.map = new GameMap(this.hero.getLevel());
+        this.gameActive = true;
     }
 
     public void selectHero(int index) {
         this.hero = heroes.get(index);
         this.map = new GameMap(this.hero.getLevel());
+        this.gameActive = true;
     }
 
     public void onFight(Hero hero, GameMap map) {
@@ -71,7 +75,6 @@ public class Controller {
     }
 
     public void onFlee(Hero hero, GameMap map) {
-        // view.showMessage("You chose to flee from the battle.");
         if (Battle.tryToRun()) {
             view.showMessage("You successfully fled from the battle.");
             map.moveHeroToPrevPosition();
@@ -90,7 +93,7 @@ public class Controller {
         }
         if (map.hasVillain(map.getHeroX(), map.getHeroY())) {
             villian = map.getVillainAt(map.getHeroX(), map.getHeroY());
-            handleBattle(false, hero, map);
+            handleBattle(hero, map);
         }
         if (hero.isDefeated())
             return GameResult.DEFEAT;
@@ -102,26 +105,32 @@ public class Controller {
     public boolean endGame(GameResult result) {
         switch (result) {
             case DEFEAT -> {
+                gameActive = false;
                 heroes = repository.loadHeroes();
                 view.showGameOver("Game Over! Your hero has been defeated.\nYou will return to hero selection.");
                 return false;
             }
             case GAME_WON -> {
+                gameActive = false;
                 repository.saveHeroes(heroes);
                 view.showVictory(hero.getName() + " has reached the pinnacle of power and conquered the realm!");
                 return false;
             }
             case MAP_CLEARED -> {
                 repository.saveHeroes(heroes);
-                boolean keepPlaying = view.askNewGame(hero.getName() + " escaped the map!\nContinue to the next level?");
-                if (keepPlaying) this.map = new GameMap(hero.getLevel());
+                boolean keepPlaying = view
+                        .askNewGame(hero.getName() + " escaped the map!\nContinue to the next level?");
+                if (keepPlaying)
+                    this.map = new GameMap(hero.getLevel());
                 return keepPlaying;
             }
-            default -> { return false; }
+            default -> {
+                return false;
+            }
         }
     }
 
-    public void handleBattle(boolean isFighting, Hero hero, GameMap map) {
+    public void handleBattle(Hero hero, GameMap map) {
         view.onBattleStart();
         boolean fight = view.askFight();
 
@@ -131,7 +140,6 @@ public class Controller {
             onFlee(hero, map);
         }
     }
-
 
     private void applyBattleResult(Hero hero, BattleResult battleResult) {
         switch (battleResult.getResult()) {
@@ -176,4 +184,17 @@ public class Controller {
         return new ArtifactStats(artifact.getType().toString(), artifact.getValue(), description);
     }
 
+    public boolean hasActiveGame() {
+        return gameActive;
+    }
+
+    public void requestViewSwitch(String viewType) {
+        this.pendingViewSwitch = viewType;
+    }
+
+    public String consumePendingViewSwitch() {
+        String v = pendingViewSwitch;
+        pendingViewSwitch = null;
+        return v;
+    }
 }
