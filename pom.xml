@@ -27,6 +27,19 @@
       <version>4.0.2</version>
     </dependency>
 
+    <!-- Hibernate ORM — bonus: relational DB persistence -->                                                          
+    <dependency>
+      <groupId>org.hibernate.orm</groupId>                                                                             
+      <artifactId>hibernate-core</artifactId>                                                                        
+      <version>6.4.4.Final</version>
+    </dependency>
+    <!-- H2 embedded DB — no server setup required -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>2.2.224</version>
+    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
