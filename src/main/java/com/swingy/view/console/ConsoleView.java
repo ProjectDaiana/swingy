@@ -53,7 +53,12 @@ public class ConsoleView implements GameView {
 
     private void setupHero(Controller controller) {
         List<HeroStats> heroes = controller.loadHeroes();
-        if (askNewHero()) {
+        boolean createNew = askNewHero();
+        if (!createNew && heroes.isEmpty()) {
+            System.out.println("No existing heroes found. You must create a new one.");
+            createNew = true;
+        }
+        if (createNew) {
             String name = askHeroName();
             HeroType heroType = askHeroType();
             controller.createHero(name, heroType);
