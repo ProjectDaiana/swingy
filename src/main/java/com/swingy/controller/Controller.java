@@ -15,9 +15,22 @@ import com.swingy.model.DirectionType;
 import com.swingy.view.HeroStats;
 import com.swingy.view.MapState;
 import com.swingy.view.ArtifactStats;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Controller {
+    private static final Validator validator;
+    static {
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            validator = factory.getValidator();
+        }
+    }
+
     private GameView view;
     private HeroRepository repository;
     private Villian villian;
@@ -58,7 +71,15 @@ public class Controller {
     }
 
     public void createHero(String name, HeroType type) {
-        this.hero = new HeroBuilder(name, type).build();
+        Hero candidate = new HeroBuilder(name, type).build();
+        Set<ConstraintViolation<Hero>> violations = validator.validate(candidate);
+        if (!violations.isEmpty()) {
+            String messages = violations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .collect(Collectors.joining(", "));
+            throw new IllegalArgumentException(messages);
+        }
+        this.hero = candidate;
         heroes.add(this.hero);
         this.map = new GameMap(this.hero.getLevel());
         this.gameActive = true;

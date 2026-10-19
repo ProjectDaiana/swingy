@@ -59,9 +59,16 @@ public class ConsoleView implements GameView {
             createNew = true;
         }
         if (createNew) {
-            String name = askHeroName();
-            HeroType heroType = askHeroType();
-            controller.createHero(name, heroType);
+            while (true) {
+                String name = askHeroName();
+                HeroType heroType = askHeroType();
+                try {
+                    controller.createHero(name, heroType);
+                    break;
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Invalid input: " + e.getMessage());
+                }
+            }
         } else {
             int selectedHeroIndex = askSelectHero(heroes);
             controller.selectHero(selectedHeroIndex);

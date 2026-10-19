@@ -228,11 +228,15 @@ public class GUIView implements GameView {
         submitButton.addActionListener(e -> {
             String name = heroNameField.getText().trim();
             HeroType selectedClass = (HeroType) heroTypeSelector.getSelectedItem();
-            if (!name.isEmpty() && selectedClass != null) {
-                controller.createHero(name, selectedClass);
-                heroIcon = iconLoader.hero(selectedClass);
-                showHeroDetails(controller.getHeroStats());
-                drawMap(controller.getMapState());
+            if (selectedClass != null) {
+                try {
+                    controller.createHero(name, selectedClass);
+                    heroIcon = iconLoader.hero(selectedClass);
+                    showHeroDetails(controller.getHeroStats());
+                    drawMap(controller.getMapState());
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(frame, ex.getMessage(), "Invalid input", JOptionPane.WARNING_MESSAGE);
+                }
             }
         });
 
