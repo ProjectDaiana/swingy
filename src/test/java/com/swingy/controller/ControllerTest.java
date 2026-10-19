@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.swingy.model.DirectionType;
 import com.swingy.model.GameResult;
 import com.swingy.model.battle.BattleResult;
 import com.swingy.model.hero.HeroType;
@@ -202,5 +203,25 @@ public class ControllerTest {
         assertEquals(9, stats.attack());
         assertEquals(4, stats.defense());
         assertEquals(40, stats.hitPoints());
+    }
+
+
+    // --- view switch ---
+
+    @Test
+    public void viewSwitch_preservesHeroPositionStatsAndActiveGame() {
+        controller.onMove(DirectionType.NORTH);
+
+        MapState mapBefore = controller.getMapState();
+        HeroStats statsBefore = controller.getHeroStats();
+        assertTrue(controller.hasActiveGame());
+
+        controller.setView(new MockView());
+
+        assertEquals(mapBefore.heroX(), controller.getMapState().heroX());
+        assertEquals(mapBefore.heroY(), controller.getMapState().heroY());
+        assertEquals(statsBefore.attack(), controller.getHeroStats().attack());
+        assertEquals(statsBefore.hitPoints(), controller.getHeroStats().hitPoints());
+        assertTrue(controller.hasActiveGame());
     }
 }
