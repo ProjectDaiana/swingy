@@ -38,9 +38,9 @@ public class GameMap {
                     int vLevel = Math.max(1, heroLevel + randomizer.nextInt(3) - 1);
                     Villian v = new Villian(
                             vLevel,
-                            5 + vLevel * 2,
+                            5 + vLevel * 4,
                             3 + vLevel,
-                            20 + vLevel * 5);
+                            30 + vLevel * 18);
                     villains.put(key(x, y), v);
                 }
             }

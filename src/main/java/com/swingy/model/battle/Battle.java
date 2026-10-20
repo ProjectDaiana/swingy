@@ -14,7 +14,14 @@ public class Battle {
     private Battle() {
     };
 
+    private static int roll(Random random, int base) {
+        if (base == 0) return 0;
+        int variance = (int) Math.round(base * 0.35);
+        return base - variance + random.nextInt(2 * variance + 1);
+    }
+
     public static BattleResult fight(Hero hero, Villian villain) {
+        Random random = new Random();
         int heroHp = hero.getHitPoints();
         int villainHp = villain.getHitPoints();
         int heroDmg = Math.max(0, hero.getAttack() - villain.getDefense());
@@ -27,10 +34,10 @@ public class Battle {
             }
         } else {
             while (heroHp > 0 && villainHp > 0) {
-                villainHp -= heroDmg;
+                villainHp -= roll(random, heroDmg);
                 if (villainHp <= 0)
                     break;
-                heroHp -= villainDmg;
+                heroHp -= roll(random, villainDmg);
             }
             if (heroHp <= 0) {
                 hero.dies();
@@ -40,20 +47,18 @@ public class Battle {
         }
 
         int xp = villain.getAttack() * 10;
-        return new BattleResult(rollArtifact(villain), BattleResult.Result.WIN, xp);
+        return new BattleResult(rollArtifact(random, hero), BattleResult.Result.WIN, xp);
     }
 
-    private static Artifact rollArtifact(Villian villain) {
-        Random random = new Random();
+    private static Artifact rollArtifact(Random random, Hero hero) {
         if (random.nextInt(2) != 0)
             return null;
         ArtifactType[] types = ArtifactType.values();
         ArtifactType randomType = types[random.nextInt(types.length)];
-        int value = villain.getAttack();
         return switch (randomType) {
-            case WEAPON -> new Weapon(value);
-            case HELM -> new Helm(value);
-            case ARMOR -> new Armor(value);
+            case WEAPON -> new Weapon(Math.max(1, hero.getAttack() / 2));
+            case ARMOR -> new Armor(Math.max(1, hero.getDefense() / 2));
+            case HELM -> new Helm(Math.max(1, hero.getHitPoints() / 2));
         };
     }
 
