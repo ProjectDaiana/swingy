@@ -38,8 +38,11 @@ java -jar swingy.jar gui --db
 Requires Java 17+.
 
 ```bash
-# run tests
+# run all tests
 mvn test
+
+# run a specific test class
+mvn test -Dtest=BattleSimulationTest 2>&1 | grep -E "Level|==="
 ```
 
 ### Inspect the database
