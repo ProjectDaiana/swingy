@@ -92,17 +92,17 @@ public class Controller {
         this.gameActive = true;
     }
 
-    public void onFight(Hero hero, GameMap map) {
-        resolveBattle(hero, map);
+    private void onFight() {
+        resolveBattle();
     }
 
-    public void onFlee(Hero hero, GameMap map) {
+    private void onFlee() {
         if (Battle.tryToRun()) {
             view.showMessage("You successfully fled from the battle.");
             map.moveHeroToPrevPosition();
         } else {
             view.showMessage("Too slow. Now you MUST fight!");
-            resolveBattle(hero, map);
+            resolveBattle();
         }
     }
 
@@ -115,7 +115,7 @@ public class Controller {
         }
         if (map.hasVillain(map.getHeroX(), map.getHeroY())) {
             villian = map.getVillainAt(map.getHeroX(), map.getHeroY());
-            handleBattle(hero, map);
+            handleBattle();
         }
         if (hero.isDefeated())
             return GameResult.DEFEAT;
@@ -152,18 +152,18 @@ public class Controller {
         }
     }
 
-    public void handleBattle(Hero hero, GameMap map) {
+    private void handleBattle() {
         view.onBattleStart();
         boolean fight = view.askFight();
 
         if (fight) {
-            onFight(hero, map);
+            onFight();
         } else {
-            onFlee(hero, map);
+            onFlee();
         }
     }
 
-    private void applyBattleResult(Hero hero, BattleResult battleResult) {
+    private void applyBattleResult(BattleResult battleResult) {
         switch (battleResult.getResult()) {
             case WIN -> {
                 int levelBefore = hero.getLevel();
@@ -180,7 +180,7 @@ public class Controller {
         }
     }
 
-    private void resolveBattle(Hero hero, GameMap map) {
+    private void resolveBattle() {
         BattleResult battleResult = Battle.fight(hero, villian);
         if (battleResult.getResult() == BattleResult.Result.WIN) {
             map.removeVillainAt(map.getHeroX(), map.getHeroY());
@@ -189,7 +189,7 @@ public class Controller {
                 ? getArtifactStats(battleResult.getArtifact())
                 : null;
         view.showBattleResult(new BattleStats(battleResult.getResult().name(), artifactStats));
-        applyBattleResult(hero, battleResult);
+        applyBattleResult(battleResult);
     }
 
     public MapState getMapState() {

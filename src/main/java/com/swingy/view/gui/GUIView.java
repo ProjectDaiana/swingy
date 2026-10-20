@@ -87,7 +87,8 @@ public class GUIView implements GameView {
         frame.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
-                if (runLatch != null) runLatch.countDown();
+                if (runLatch != null)
+                    runLatch.countDown();
                 frame.dispose();
             }
         });
@@ -376,9 +377,12 @@ public class GUIView implements GameView {
     }
 
     private void initHeroDetailsBar(HeroStats stats) {
-        statLevel = uiFactory.createStatCell(ViewUtils.statHtml("Lv", stats.level()), Typography.Style.STAT_ACCENT_BOLD);
-        JLabel statName = uiFactory.createStatCell(ViewUtils.statHtml("", stats.name()), Typography.Style.STAT_ACCENT_BOLD);
-        JLabel statType = uiFactory.createStatCell(ViewUtils.statHtml("", ViewUtils.toTitleCase(stats.type())), Typography.Style.STAT_ACCENT_BOLD);
+        statLevel = uiFactory.createStatCell(ViewUtils.statHtml("Lv", stats.level()),
+                Typography.Style.STAT_ACCENT_BOLD);
+        JLabel statName = uiFactory.createStatCell(ViewUtils.statHtml("", stats.name()),
+                Typography.Style.STAT_ACCENT_BOLD);
+        JLabel statType = uiFactory.createStatCell(ViewUtils.statHtml("", ViewUtils.toTitleCase(stats.type())),
+                Typography.Style.STAT_ACCENT_BOLD);
         statXp = uiFactory.createStatCell(ViewUtils.statHtml("XP", stats.xp()), Typography.Style.STAT);
         statAttack = uiFactory.createStatCell(ViewUtils.statHtml("ATK", stats.attack()), Typography.Style.STAT);
         statDefense = uiFactory.createStatCell(ViewUtils.statHtml("DEF", stats.defense()), Typography.Style.STAT);
