@@ -143,14 +143,6 @@ public class Hero {
         return equipped.get(type);
     }
 
-    public void takeDamage(int damage) {
-        int effectiveDamage = Math.max(0, damage - defense);
-        hitPoints -= effectiveDamage;
-        if (hitPoints < 0) {
-            hitPoints = 0;
-        }
-    }
-
     public HeroType getType() {
         return HeroType;
     }

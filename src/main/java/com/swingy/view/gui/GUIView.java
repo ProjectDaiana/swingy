@@ -556,10 +556,6 @@ public class GUIView implements GameView {
         JOptionPane.showMessageDialog(frame, message, "Game Over", JOptionPane.PLAIN_MESSAGE, iconLoader.lose());
     }
 
-    public boolean askPlayAgain() {
-        return false;
-    }
-
     private ImageIcon resultIcon(boolean won, ArtifactStats artifact) {
         if (won) {
             return artifact != null ? iconLoader.artifact(artifact.type()) : heroIcon;

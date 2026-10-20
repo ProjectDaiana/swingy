@@ -87,14 +87,6 @@ public class GameMap {
         return heroY;
     }
 
-    public int getPrevHeroX() {
-        return prevHeroX;
-    }
-
-    public int getPrevHeroY() {
-        return prevHeroY;
-    }
-
     public boolean hasVillain(int x, int y) {
         return getVillainAt(x, y) != null;
     }

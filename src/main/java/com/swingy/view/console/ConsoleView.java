@@ -246,16 +246,6 @@ public class ConsoleView implements GameView {
         System.out.println(message);
     }
 
-    public boolean askPlayAgain() {
-        System.out.println("Do you want to play again? (Y/N): ");
-        String input = scanner.nextLine().toUpperCase();
-        if (!"Y".equals(input) && !"N".equals(input)) {
-            System.out.println("Invalid input. Please enter Y or N.");
-            return askPlayAgain();
-        }
-        return "Y".equals(input);
-    }
-
     @Override
     public boolean askNewGame(String message) {
         System.out.println(message + " (Y/N): ");
