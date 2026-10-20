@@ -141,7 +141,7 @@ public class Controller {
             case MAP_CLEARED -> {
                 repository.saveHeroes(heroes);
                 boolean keepPlaying = view
-                        .askNewGame(hero.getName() + " escaped the map!\nContinue to the next level?");
+                        .askNewGame(hero.getName() + " escaped the map!\nContinue to the next map?");
                 if (keepPlaying)
                     this.map = new GameMap(hero.getLevel());
                 return keepPlaying;
