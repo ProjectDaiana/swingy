@@ -51,7 +51,19 @@ public class Controller {
     }
 
     public List<HeroStats> loadHeroes() {
-        heroes = repository.loadHeroes();
+        List<Hero> loaded = repository.loadHeroes();
+        heroes = new java.util.ArrayList<>();
+        for (Hero h : loaded) {
+            Set<ConstraintViolation<Hero>> violations = validator.validate(h);
+            if (!violations.isEmpty()) {
+                String messages = violations.stream()
+                        .map(ConstraintViolation::getMessage)
+                        .collect(Collectors.joining(", "));
+                System.out.println("Skipping invalid hero '" + h.getName() + "': " + messages);
+                continue;
+            }
+            heroes.add(h);
+        }
         List<HeroStats> heroesStats = new java.util.ArrayList<>();
         for (Hero h : heroes) {
             heroesStats.add(toHeroStats(h));

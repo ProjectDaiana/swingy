@@ -1,4 +1,7 @@
 package com.swingy.repository;
+import com.swingy.model.hero.Hero;
+import com.swingy.model.hero.HeroBuilder;
+import com.swingy.model.hero.HeroType;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,9 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.swingy.model.hero.Hero;
-import com.swingy.model.hero.HeroBuilder;
-import com.swingy.model.hero.HeroType;
 
 public class FileHeroRepository implements HeroRepository {
     private Path path = Paths.get("heroes.txt");
