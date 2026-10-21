@@ -9,6 +9,7 @@ import com.swingy.model.DirectionType;
 import com.swingy.model.GameResult;
 import com.swingy.view.BattleStats;
 import com.swingy.model.hero.HeroType;
+import com.swingy.model.hero.HeroBuilder;
 import com.swingy.repository.HeroRepository;
 import com.swingy.model.hero.Hero;
 import com.swingy.view.ArtifactStats;
@@ -205,6 +206,31 @@ public class ControllerTest {
         assertEquals(40, stats.hitPoints());
     }
 
+
+    // --- validation on load ---
+
+    @Test
+    public void loadHeroes_skipsHeroWithNegativeXp() {
+        MockRepository repo = new MockRepository();
+        repo.heroes.add(new HeroBuilder("Bad", HeroType.WARRIOR).xp(-1).build());
+
+        Controller c = new Controller(view, repo);
+        List<HeroStats> result = c.loadHeroes();
+
+        assertEquals(0, result.size());
+    }
+
+    @Test
+    public void loadHeroes_keepsValidHero() {
+        MockRepository repo = new MockRepository();
+        repo.heroes.add(new HeroBuilder("Good", HeroType.WARRIOR).build());
+
+        Controller c = new Controller(view, repo);
+        List<HeroStats> result = c.loadHeroes();
+
+        assertEquals(1, result.size());
+        assertEquals("Good", result.get(0).name());
+    }
 
     // --- view switch ---
 
